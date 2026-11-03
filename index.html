@@ -57,13 +57,9 @@
     <!-- Reviewer & Actions -->
     <div class="flex items-center gap-1.5 text-xs">
       <div class="bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
-        <span class="text-slate-500 text-[10px]">Reviewer:</span>
-        <select id="userSelector" onchange="onUserChange()" class="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer text-[11px]">
-          <option value="Kira">Kira (Lead Reviewer)</option>
-          <option value="Alex">Alex (Lab Member)</option>
-          <option value="Taylor">Taylor (Postdoc)</option>
-          <option value="Jordan">Jordan (Advisor)</option>
-        </select>
+        <span class="text-slate-500 text-[10px]">👤 Reviewer:</span>
+        <span id="currentReviewerDisplay" class="font-bold text-slate-900 text-[11px]">Select Name</span>
+        <button onclick="openReviewerModal()" class="text-[9px] text-emerald-600 hover:text-emerald-700 underline font-semibold ml-0.5 cursor-pointer" title="Change reviewer name">(change)</button>
       </div>
 
       <!-- Sync Ext Download Helper -->
@@ -77,6 +73,27 @@
       </button>
     </div>
   </header>
+
+  
+  <!-- ============================================================== -->
+  <!-- FIRST-TIME REVIEWER SELECTION MODAL                            -->
+  <!-- ============================================================== -->
+  <div id="reviewerModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-5 text-center animate-in fade-in zoom-in duration-200">
+      <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner">
+        👋
+      </div>
+      <h3 class="text-base font-bold text-slate-900">Welcome to the Validation Workbench</h3>
+      <p class="text-xs text-slate-500 mt-1 mb-4">Please select your name below to begin your review session:</p>
+      
+      <!-- 12 Alphabetical Team Member Buttons -->
+      <div id="reviewerBtnGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <!-- Injected via JS in strict alphabetical order -->
+      </div>
+      
+      <p class="text-[10px] text-slate-400 mt-4">Your browser will remember you, so you won't need to select this again.</p>
+    </div>
+  </div>
 
   <!-- ============================================================== -->
   <!-- TAB 1: SQUEEZED SPLIT-SCREEN WORKBENCH                         -->
@@ -1240,8 +1257,23 @@
       console.warn("Storage error", e);
     }
 
+    const TEAM_MEMBERS = [
+      "Andrew",
+      "Anna",
+      "Camilo",
+      "Eliza",
+      "Erik",
+      "Hannah",
+      "Keegan",
+      "Kira",
+      "Koa",
+      "Kyleigh",
+      "Martin",
+      "Sonia"
+    ];
+
+    let currentUser = localStorage.getItem("Workbench_Reviewer_Name") || "";
     let currentIndex = 0;
-    let currentUser = "Kira";
     let syncedWindow = null;
     let isWindowSyncActive = false;
     let isExtensionActive = false;
@@ -1335,26 +1367,63 @@
       }, 3500);
     }
 
-    function onUserChange() {
-      currentUser = document.getElementById("userSelector").value;
-      updateExportButtonVisibility();
-      updateSpreadsheetUserFilterLabel();
+    function initReviewer() {
+      renderReviewerModalButtons();
+      if (!currentUser || !TEAM_MEMBERS.includes(currentUser)) {
+        openReviewerModal();
+      } else {
+        updateReviewerUI();
+      }
+    }
+
+    function renderReviewerModalButtons() {
+      const grid = document.getElementById("reviewerBtnGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      TEAM_MEMBERS.forEach(name => {
+        const btn = document.createElement("button");
+        const isCurrent = (name === currentUser);
+        const isLead = (name === "Kira");
+        btn.type = "button";
+        btn.className = `p-2 rounded-lg border font-semibold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+          isCurrent 
+            ? 'bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-300' 
+            : 'bg-slate-50 hover:bg-emerald-50 hover:text-emerald-800 border-slate-200 text-slate-700'
+        }`;
+        btn.innerHTML = `<span>${isLead ? '👑' : '👤'}</span> <span>${name}</span>`;
+        btn.onclick = () => setReviewer(name);
+        grid.appendChild(btn);
+      });
+    }
+
+    function openReviewerModal() {
+      renderReviewerModalButtons();
+      const modal = document.getElementById("reviewerModal");
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeReviewerModal() {
+      const modal = document.getElementById("reviewerModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
+    function setReviewer(name) {
+      currentUser = name;
+      localStorage.setItem("Workbench_Reviewer_Name", name);
+      closeReviewerModal();
+      updateReviewerUI();
+      showToast(`👋 Reviewer set to: ${name}`);
       renderCurrentEntry();
       updateLeaderboard();
     }
 
-    function updateSpreadsheetUserFilterLabel() {
+    function updateReviewerUI() {
+      const disp = document.getElementById("currentReviewerDisplay");
+      if (disp) disp.innerText = currentUser || "Select Name";
       const opt = document.getElementById("optUserEntries");
-      if (opt) {
-        opt.innerText = `${currentUser}'s Entries`;
-      }
-    }
-
-    function updateExportButtonVisibility() {
+      if (opt) opt.innerText = `${currentUser || 'My'}'s Entries`;
       const btn = document.getElementById("btnExportCsv");
-      if (btn) {
-        btn.style.display = (currentUser === "Kira") ? "inline-flex" : "none";
-      }
+      if (btn) btn.style.display = "inline-flex";
     }
 
     function getEntryReviewStatus(row) {
@@ -2080,19 +2149,17 @@
     }
 
     function updateLeaderboard() {
-      const counts = {
-        Kira: { verified: 0, revision: 0, lastActive: "Active now" },
-        Alex: { verified: 0, revision: 0, lastActive: "Idle" },
-        Taylor: { verified: 0, revision: 0, lastActive: "Idle" },
-        Jordan: { verified: 0, revision: 0, lastActive: "Idle" }
-      };
+      const counts = {};
+      TEAM_MEMBERS.forEach(name => {
+        counts[name] = { verified: 0, revision: 0, lastActive: "Idle" };
+      });
 
       let totalVerifiedAll = 0;
 
       allEntries.forEach(item => {
         const r = getEntryReviewStatus(item.excelRow);
         if (r.status === 'confirmed') {
-          const user = r.reviewer || 'Kira';
+          const user = r.reviewer || currentUser || 'Kira';
           if (!counts[user]) counts[user] = { verified: 0, revision: 0, lastActive: "Idle" };
           counts[user].verified++;
           totalVerifiedAll++;
@@ -2100,7 +2167,7 @@
             counts[user].lastActive = formatTimestamp(r.timestamp);
           }
         } else if (r.status === 'revision') {
-          const user = r.reviewer || 'Kira';
+          const user = r.reviewer || currentUser || 'Kira';
           if (!counts[user]) counts[user] = { verified: 0, revision: 0, lastActive: "Idle" };
           counts[user].revision++;
           if (r.timestamp) {
@@ -2114,14 +2181,10 @@
 
       const container = document.getElementById("leaderboardBarContainer");
       container.innerHTML = "";
-      const colors = {
-        Kira: "bg-emerald-600",
-        Alex: "bg-sky-600",
-        Taylor: "bg-indigo-600",
-        Jordan: "bg-purple-600"
-      };
 
-      Object.entries(counts).forEach(([user, data]) => {
+      // Strictly alphabetical display
+      TEAM_MEMBERS.forEach(user => {
+        const data = counts[user] || { verified: 0, revision: 0, lastActive: "Idle" };
         const totalChecked = data.verified + data.revision;
         const pct = allEntries.length > 0 ? ((totalChecked / allEntries.length) * 100).toFixed(1) : 0;
         const isCurrent = (user === currentUser);
@@ -2129,12 +2192,12 @@
         div.innerHTML = `
           <div class="flex justify-between text-xs font-semibold mb-1">
             <span class="flex items-center gap-1.5 ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-800'}">
-              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '(Active Reviewer)' : ''}
+              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '<span class="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded border border-emerald-300 font-bold">(You)</span>' : ''}
             </span>
-            <span class="font-mono ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-600'}">${totalChecked} entries checked</span>
+            <span class="font-mono ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-600'}">${totalChecked} / ${allEntries.length} checked</span>
           </div>
           <div class="w-full bg-slate-200 h-4 rounded-md overflow-hidden border border-slate-300 p-0.5">
-            <div class="${colors[user] || 'bg-slate-600'} h-full rounded flex items-center justify-end pr-2 text-[9px] text-white font-bold transition-all duration-700" style="width: ${Math.max(2, pct)}%;">
+            <div class="${isCurrent ? 'bg-emerald-600' : 'bg-slate-500'} h-full rounded flex items-center justify-end pr-2 text-[9px] text-white font-bold transition-all duration-700" style="width: ${Math.max(2, pct)}%;">
               ${pct}%
             </div>
           </div>
@@ -2143,38 +2206,27 @@
       });
 
       const tb = document.getElementById("leaderboardTableBody");
-      tb.innerHTML = "";
-      Object.entries(counts).forEach(([user, data]) => {
-        const totalChecked = data.verified + data.revision;
-        const agreement = totalChecked > 0 ? (((data.verified) / totalChecked) * 100).toFixed(1) + "%" : "100.0%";
-        const isCurrent = (user === currentUser);
-        const statusLabel = isCurrent ? "Active now" : (data.lastActive || "Idle");
-
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-slate-50";
-        tr.innerHTML = `
-          <td class="py-1.5 px-2.5 font-semibold ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-800'}">${user} ${isCurrent ? '(You)' : ''}</td>
-          <td class="py-1.5 px-2.5 font-mono font-bold text-slate-900">${totalChecked}</td>
-          <td class="py-1.5 px-2.5 font-mono text-emerald-700 font-semibold">${data.verified}</td>
-          <td class="py-1.5 px-2.5 font-mono text-rose-700 font-semibold">${data.revision}</td>
-          <td class="py-1.5 px-2.5 font-mono text-slate-700">${agreement}</td>
-          <td class="py-1.5 px-2.5">
-            <span class="${isCurrent ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 text-slate-600'} text-[9px] px-1.5 py-0.2 rounded font-bold">
-              ${statusLabel}
-            </span>
-          </td>
-        `;
-        tb.appendChild(tr);
-      });
-    }
-
-    function formatTimestamp(iso) {
-      if (!iso) return "Idle";
-      try {
-        const d = new Date(iso);
-        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      } catch(e) {
-        return "Recent";
+      if (tb) {
+        tb.innerHTML = "";
+        TEAM_MEMBERS.forEach(user => {
+          const data = counts[user] || { verified: 0, revision: 0, lastActive: "Idle" };
+          const totalChecked = data.verified + data.revision;
+          const agreement = totalChecked > 0 ? (((data.verified) / totalChecked) * 100).toFixed(1) + "%" : "--";
+          const isCurrent = (user === currentUser);
+          const tr = document.createElement("tr");
+          tr.className = isCurrent ? "bg-emerald-50/60 font-medium" : "hover:bg-slate-50";
+          tr.innerHTML = `
+            <td class="py-1.5 px-2.5 font-bold text-slate-800 flex items-center gap-1">
+              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '<span class="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">(You)</span>' : ''}
+            </td>
+            <td class="py-1.5 px-2.5 font-mono font-bold text-slate-700">${totalChecked}</td>
+            <td class="py-1.5 px-2.5 font-mono font-bold text-emerald-700">${data.verified}</td>
+            <td class="py-1.5 px-2.5 font-mono font-bold text-rose-600">${data.revision}</td>
+            <td class="py-1.5 px-2.5 font-mono text-slate-600">${agreement}</td>
+            <td class="py-1.5 px-2.5 text-slate-500 text-[10px]">${isCurrent ? 'Active now' : data.lastActive}</td>
+          `;
+          tb.appendChild(tr);
+        });
       }
     }
 
@@ -2201,15 +2253,14 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `climatehazard_food_validated_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `${currentUser || "team"}_validated_v14_sample_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       showToast("📥 Exported validated CSV dataset!");
     }
 
     // Initialize App
     initHazardFilter();
-    updateSpreadsheetUserFilterLabel();
-    updateExportButtonVisibility();
+    initReviewer();
     renderCurrentEntry();
     updateLeaderboard();
   </script>
