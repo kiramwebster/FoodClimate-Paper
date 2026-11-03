@@ -56,6 +56,11 @@
 
     <!-- Reviewer & Actions -->
     <div class="flex items-center gap-1.5 text-xs">
+      <div id="cloudSyncBadge" class="bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xs" title="Google Sheet Live Synchronization">
+        <span id="cloudSyncDot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+        <span id="cloudSyncStatus" class="text-[10px] text-slate-600 font-medium">Sheet Synced</span>
+      </div>
+
       <div class="bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
         <span class="text-slate-500 text-[10px]">👤 Reviewer:</span>
         <span id="currentReviewerDisplay" class="font-bold text-slate-900 text-[11px]">Select Name</span>
@@ -1254,6 +1259,95 @@
       console.warn("Storage error", e);
     }
 
+    const GOOGLE_SHEET_API_URL = "https://script.google.com/macros/s/AKfycbz7X-xK9jTYtvqQHx9PrVKRqfuXMM8DwnyE-i1CA44QleTPt5rE5UqfL8y7R-Bqk8tA/exec";
+
+    function setSyncBadge(state, msg) {
+      const badge = document.getElementById("cloudSyncStatus");
+      const dot = document.getElementById("cloudSyncDot");
+      if (badge) badge.textContent = msg;
+      if (dot) {
+        if (state === "syncing") {
+          dot.className = "w-2 h-2 rounded-full bg-amber-400 inline-block animate-ping";
+        } else if (state === "ok") {
+          dot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+        } else if (state === "error") {
+          dot.className = "w-2 h-2 rounded-full bg-rose-500 inline-block";
+        }
+      }
+    }
+
+    async function syncReviewToCloud(rowId, reviewData) {
+      if (!GOOGLE_SHEET_API_URL) return;
+      setSyncBadge("syncing", "Saving to Sheet...");
+      try {
+        const payload = {
+          row: rowId,
+          reviewer: reviewData.reviewer || currentUser,
+          status: reviewData.status,
+          customUrl: reviewData.customUrl || "",
+          notes: reviewData.notes || "",
+          evaluations: reviewData.evaluations || {},
+          fieldNotes: reviewData.fieldNotes || {}
+        };
+        await fetch(GOOGLE_SHEET_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        setSyncBadge("ok", "Sheet Synced");
+      } catch (err) {
+        console.warn("Cloud sync error:", err);
+        setSyncBadge("error", "Offline / Saved locally");
+      }
+    }
+
+    let isInitialLoad = true;
+    async function fetchCloudReviews() {
+      if (!GOOGLE_SHEET_API_URL) return;
+      try {
+        const res = await fetch(GOOGLE_SHEET_API_URL);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.reviews) {
+          let updated = false;
+          for (const rowKey in data.reviews) {
+            const rowNum = parseInt(rowKey, 10);
+            if (isNaN(rowNum)) continue;
+            const cloudRev = data.reviews[rowKey];
+            if (!reviewStore[rowNum] || reviewStore[rowNum].status === "unverified" || (cloudRev.timestamp && cloudRev.timestamp > (reviewStore[rowNum].timestamp || ""))) {
+              reviewStore[rowNum] = cloudRev;
+              if (cloudRev.customUrl) {
+                const entry = allEntries.find(e => e.excelRow === rowNum);
+                if (entry) entry.Link = cloudRev.customUrl;
+              }
+              updated = true;
+            }
+          }
+          if (updated) {
+            saveStore();
+            filterSpreadsheet();
+            updateLeaderboard();
+            renderCurrentEntry();
+          }
+          if (isInitialLoad) {
+            isInitialLoad = false;
+            const currentItem = allEntries[currentIndex];
+            if (currentItem && reviewStore[currentItem.excelRow] && reviewStore[currentItem.excelRow].status !== "unverified") {
+              const firstUnreviewed = findNextUnreviewedIndex(-1);
+              if (firstUnreviewed !== -1) {
+                currentIndex = firstUnreviewed;
+                renderCurrentEntry();
+              }
+            }
+          }
+          setSyncBadge("ok", "Sheet Synced");
+        }
+      } catch (e) {
+        console.warn("Could not fetch cloud reviews:", e);
+        setSyncBadge("error", "Offline / Local");
+      }
+    }
+
     const TEAM_MEMBERS = [
       "Andrew",
       "Anna",
@@ -1614,6 +1708,7 @@
       }
 
       saveStore();
+      syncReviewToCloud(item.excelRow, reviewStore[item.excelRow]);
       showToast(`✓ Entry #${currentIndex + 1} saved as ${hasX ? 'Needs Revision' : 'Verified'}!`);
 
       advanceEntry();
@@ -2029,8 +2124,25 @@
       updateLeaderboard();
     }
 
+    function findNextUnreviewedIndex(fromIdx) {
+      for (let step = 1; step <= allEntries.length; step++) {
+        const idx = (fromIdx + step + allEntries.length) % allEntries.length;
+        const row = allEntries[idx].excelRow;
+        if (!reviewStore[row] || reviewStore[row].status === 'unverified') {
+          return idx;
+        }
+      }
+      return -1;
+    }
+
     function advanceEntry() {
-      currentIndex = (currentIndex + 1) % allEntries.length;
+      const nextUnrev = findNextUnreviewedIndex(currentIndex);
+      if (nextUnrev !== -1) {
+        currentIndex = nextUnrev;
+      } else {
+        currentIndex = (currentIndex + 1) % allEntries.length;
+        showToast("🎉 All entries in dataset have been verified!");
+      }
       renderCurrentEntry();
       filterSpreadsheet();
     }
@@ -2259,6 +2371,8 @@
     initReviewer();
     renderCurrentEntry();
     updateLeaderboard();
+    fetchCloudReviews();
+    setInterval(fetchCloudReviews, 20000);
   </script>
 </body>
 </html>
