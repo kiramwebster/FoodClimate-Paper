@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Climate Hazard Food Validation Workbench - Full V13 Dataset (542 Citations)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(180, 180, 180, 0.4); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(140, 140, 140, 0.6); }
+    
+    .shake {
+      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-1px, 0, 0); }
+      20%, 80% { transform: translate3d(2px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+      40%, 60% { transform: translate3d(3px, 0, 0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen p-2 md:p-3 font-sans text-xs">
+
+  <!-- Top Toast Notification -->
+  <div id="toastNotification" class="fixed top-3 right-3 z-50 bg-slate-900 text-white px-3 py-2 rounded-lg shadow-xl border border-slate-700 flex items-center gap-1.5 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none text-xs">
+    <span class="text-emerald-400 font-bold text-sm">✓</span>
+    <span id="toastMsg" class="font-medium">Notification message</span>
+  </div>
+
+  <!-- Top Navigation Bar (Ultra-Compact) -->
+  <header class="max-w-[1700px] mx-auto mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-1.5">
+    <div class="flex items-center gap-2">
+      <div class="w-6 h-6 rounded-md bg-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
+        ✓
+      </div>
+      <div>
+        <h1 class="text-xs md:text-sm font-bold tracking-tight text-slate-900">Climate Hazard Food Validation Workbench</h1>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-xs font-medium shadow-xs">
+      <button onclick="switchTab('workbench')" id="tab-workbench" class="px-2.5 py-0.5 rounded-md bg-emerald-600 text-white font-semibold shadow-xs transition">
+        Validation Workbench
+      </button>
+      <button onclick="switchTab('spreadsheet')" id="tab-spreadsheet" class="px-2.5 py-0.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+        Spreadsheet Queue (<span id="queueTotalCount">542</span>)
+      </button>
+      <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="px-2.5 py-0.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+        Team Leaderboard
+      </button>
+    </nav>
+
+    <!-- Reviewer & Actions -->
+    <div class="flex items-center gap-1.5 text-xs">
+      <div class="bg-white border border-slate-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-xs">
+        <span class="text-slate-500 text-[10px]">Reviewer:</span>
+        <select id="userSelector" onchange="onUserChange()" class="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer text-[11px]">
+          <option value="Kira">Kira (Lead Reviewer)</option>
+          <option value="Alex">Alex (Lab Member)</option>
+          <option value="Taylor">Taylor (Postdoc)</option>
+          <option value="Jordan">Jordan (Advisor)</option>
+        </select>
+      </div>
+
+      <!-- Sync Ext Download Helper -->
+      <a href="WorkbenchSyncExtension.zip" download class="text-blue-600 hover:text-blue-700 px-2 py-0.5 rounded-lg bg-blue-50 border border-blue-200 text-[10px] font-semibold transition flex items-center gap-1 shadow-xs" title="Download Chrome Sync Assistant (.zip) for teammates">
+        <span>📥</span> Sync Ext (.zip)
+      </a>
+
+      <!-- Export CSV (Lead Reviewer Only) -->
+      <button id="btnExportCsv" onclick="exportValidatedCsv()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-lg shadow-xs transition flex items-center gap-1 text-[11px]" title="Export current dataset as CSV">
+        <span>📥</span> Export CSV
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- TAB 1: SQUEEZED SPLIT-SCREEN WORKBENCH                         -->
+  <!-- ============================================================== -->
+  <main id="view-workbench" class="max-w-[1700px] mx-auto">
+    <div class="flex flex-col xl:flex-row gap-4 items-start">
+
+      <!-- LEFT COLUMN: ULTRA-COMPACT EVALUATION SHEET (MAX-W-[450px]) -->
+      <div class="w-full max-w-[450px] flex flex-col gap-1.5 shrink-0">
+
+        <!-- TITLE & METADATA CARD (TOP - SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1 mb-1 flex-wrap">
+            <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
+              Entry #<span id="currentEntryIndex">1</span> of <span id="totalEntriesCount">542</span> (Row <span id="excelRowId">2</span>)
+            </span>
+            <div class="flex items-center gap-1 shrink-0">
+              <span id="paperMultiClaimBadge" class="hidden text-[9px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded"></span>
+              <span id="reviewStatusBadge" class="text-[9px] font-bold px-1.5 py-0.2 rounded border"></span>
+              <span id="evidenceBadge" class="text-[9px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.2 rounded"></span>
+            </div>
+          </div>
+
+          <h2 id="entryTitle" class="text-xs font-bold leading-snug break-words text-slate-900 line-clamp-2"></h2>
+          <p class="text-[10px] text-slate-500 mt-0.5 truncate">
+            Authors: <span id="entryAuthor" class="text-slate-700 font-semibold">--</span>
+          </p>
+
+          <!-- Navigation Controls & Direct Jump -->
+          <div class="flex items-center justify-between gap-1.5 mt-1.5 pt-1.5 border-t border-slate-100">
+            <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1.5 py-0.2 rounded text-[11px]">
+              <span class="text-[9px] text-slate-500 uppercase font-bold">Row:</span>
+              <input type="number" id="jumpRowInput" min="2" max="543" value="2" 
+                     onkeydown="if(event.key==='Enter') jumpToRow(this.value)"
+                     class="w-10 bg-white border border-slate-300 rounded px-1 py-0.2 text-center font-bold text-slate-800 outline-none text-[11px] focus:border-emerald-500">
+              <button onclick="jumpToRow(document.getElementById('jumpRowInput').value)" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-600 text-white hover:bg-emerald-500">Go</button>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="prevEntry()" class="px-2 py-0.5 rounded bg-slate-50 border border-slate-200 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition">
+                &larr; Prev
+              </button>
+              <button onclick="nextEntry()" class="px-2 py-0.5 rounded bg-slate-50 border border-slate-200 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition">
+                Next &rarr;
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1. URL CARD (STRICTLY 1-LINE URL, CONDITIONAL REPLACEMENT ON ✗) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">1. Citation URL</span>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_URL" onclick="toggleFieldEval('URL', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark URL as correct">
+                ✓
+              </button>
+              <button id="btnX_URL" onclick="toggleFieldEval('URL', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark URL as incorrect (opens replacement URL box)">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- URL Link Display (STRICTLY ONE LINE with truncate) -->
+          <a id="fieldUrlLink" href="#" target="_blank" class="font-mono text-[10px] text-blue-600 truncate block hover:underline bg-slate-50 p-1 rounded border border-slate-200 leading-tight" title="">
+            https://...
+          </a>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center gap-1 mt-1.5">
+            <!-- Open in 2nd window (BLUE) -->
+            <button id="btnToggleSyncWindow" onclick="openInNewWindow()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-xs transition flex items-center gap-1" title="Open paper in a 2nd window that syncs automatically as you navigate">
+              <span>⧉</span> <span id="syncBtnLabel">Open in 2nd window</span>
+            </button>
+            <!-- Open in new tab (NEUTRAL/OPEN VISUAL) -->
+            <button onclick="openPaperInNewTab()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px] border border-slate-300 shadow-xs transition flex items-center gap-1" title="Open citation paper in a new tab in this browser window">
+              <span>↗</span> Open in new tab
+            </button>
+            <!-- Search Google: if synced, searches in 2nd window! -->
+            <button onclick="triggerFaultyLinkGoogleSearch()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px] border border-amber-300 shadow-xs transition flex items-center gap-1" title="Search Google for authentic publication (updates 2nd window if synced)">
+              <span>🔍</span> Search Google
+            </button>
+          </div>
+
+          <!-- Conditional Replacement URL Box (Visible ONLY when X is chosen for URL; acts as the note) -->
+          <div id="xNoteContainer_URL" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-1 bg-rose-50/50 p-1.5 rounded-lg border border-rose-200">
+            <div class="flex items-center justify-between text-[9px] font-bold text-rose-700 uppercase tracking-wider">
+              <span>✏ Paste Replacement Verified URL:</span>
+              <span class="text-[8px] text-rose-600 font-normal">Acts as correction note</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <input type="text" id="urlReplacementInput" placeholder="Paste replacement verified URL here..." 
+                     class="flex-1 bg-white border border-rose-300 rounded px-1.5 py-0.5 text-[10px] text-slate-800 outline-none focus:border-rose-500"
+                     oninput="onUrlReplacementInputChange()"
+                     onkeydown="if(event.key==='Enter') saveOverriddenUrl()">
+              <button onclick="saveOverriddenUrl()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-2 py-0.5 rounded text-[9px] shadow-xs transition shrink-0">
+                Save URL
+              </button>
+            </div>
+            <div id="urlXNoteHint" class="text-[8px] text-rose-600 italic">
+              * Required: Enter or save the working replacement URL above to complete this evaluation
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. HAZARD CARD (SINGLE ROW SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg py-1 px-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0 pr-1 truncate">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 shrink-0">2. Hazard:</span>
+              <span id="fieldHazard" class="text-xs font-bold text-amber-800 truncate">--</span>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_Hazard" onclick="toggleFieldEval('Hazard', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Hazard as correct">
+                ✓
+              </button>
+              <button id="btnX_Hazard" onclick="toggleFieldEval('Hazard', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Hazard as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_Hazard" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Hazard is incorrect:</span>
+            <textarea id="xNoteInput_Hazard" rows="2" placeholder="e.g. Paper examines flooding, not precipitation..." 
+                      oninput="onFieldNoteChange('Hazard')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 3. SPECIES CARD (SINGLE ROW SQUEEZED + COPY BUTTON) -->
+        <section class="bg-white border border-slate-200 rounded-lg py-1 px-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0 pr-1 truncate">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 shrink-0">3. Species:</span>
+              <span id="fieldSpecies" class="text-xs font-bold italic text-emerald-700 truncate">--</span>
+              <!-- Copy button next to Species Name -->
+              <button onclick="copySpeciesToClipboard()" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 hover:bg-amber-600 text-white transition flex items-center gap-0.5 shadow-xs shrink-0" title="Copy species name to clipboard">
+                📋 Copy
+              </button>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_Species" onclick="toggleFieldEval('Species', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Species as correct">
+                ✓
+              </button>
+              <button id="btnX_Species" onclick="toggleFieldEval('Species', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Species as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_Species" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Species is incorrect:</span>
+            <textarea id="xNoteInput_Species" rows="2" placeholder="e.g. Paper actually studies Oreochromis niloticus..." 
+                      oninput="onFieldNoteChange('Species')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 4. VERBATIM QUOTE CARD (SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">4. Verbatim Quote</span>
+              <button onclick="copyQuoteToClipboard()" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500 text-white hover:bg-amber-600 transition flex items-center gap-0.5 shadow-xs" title="Copy verbatim quote to clipboard">
+                📋 Copy
+              </button>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_Quote" onclick="toggleFieldEval('Quote', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Quote as correct">
+                ✓
+              </button>
+              <button id="btnX_Quote" onclick="toggleFieldEval('Quote', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Quote as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <blockquote id="fieldQuoteShort" class="text-[10px] italic leading-relaxed text-slate-600 border-l-2 border-emerald-500 pl-1.5 cursor-pointer line-clamp-2" onclick="toggleExpandQuote()">
+            <!-- Populated via JS -->
+          </blockquote>
+          <div id="fieldQuoteFull" class="hidden text-[10px] italic leading-relaxed text-slate-800 bg-slate-50 p-1.5 rounded border border-slate-200 border-l-4 border-l-emerald-500 mt-1">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_Quote" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Quote is incorrect:</span>
+            <textarea id="xNoteInput_Quote" rows="2" placeholder="e.g. Hallucinated quote, not found in original text, misattributed..." 
+                      oninput="onFieldNoteChange('Quote')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 5. SUMMARY CARD (SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1 mb-1">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">5. Summary</span>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_Summary" onclick="toggleFieldEval('Summary', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Summary as correct">
+                ✓
+              </button>
+              <button id="btnX_Summary" onclick="toggleFieldEval('Summary', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Summary as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <div id="fieldSummaryShort" class="text-[10px] leading-relaxed text-slate-600 cursor-pointer line-clamp-2" onclick="toggleExpandSummary()">
+            <!-- Populated via JS -->
+          </div>
+          <div id="fieldSummaryFull" class="hidden text-[10px] leading-relaxed text-slate-800 bg-slate-50 p-1.5 rounded border border-slate-200 mt-1">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_Summary" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Summary is incorrect:</span>
+            <textarea id="xNoteInput_Summary" rows="2" placeholder="e.g. Contradicts findings in paper, misrepresents mechanism..." 
+                      oninput="onFieldNoteChange('Summary')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 6. IMPACT DIRECTION CARD (SINGLE ROW SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg py-1 px-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0 pr-1 truncate">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 shrink-0">6. Impact:</span>
+              <span id="fieldImpact" class="text-xs font-bold text-slate-800 truncate">--</span>
+              <span id="fieldImpactTag" class="text-[8px] px-1 py-0.2 rounded font-bold uppercase tracking-wider border shrink-0">
+                --
+              </span>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_Impact" onclick="toggleFieldEval('Impact', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Impact Direction as correct">
+                ✓
+              </button>
+              <button id="btnX_Impact" onclick="toggleFieldEval('Impact', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Impact Direction as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_Impact" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Impact Direction is incorrect:</span>
+            <textarea id="xNoteInput_Impact" rows="2" placeholder="e.g. Findings show beneficial increase in recruitment, not detrimental..." 
+                      oninput="onFieldNoteChange('Impact')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 7. SOURCE TYPE CARD (SINGLE ROW SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg py-1 px-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0 pr-1 truncate">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 shrink-0">7. Source:</span>
+              <span id="fieldSourceType" class="text-xs font-semibold text-slate-800 truncate">--</span>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_SourceType" onclick="toggleFieldEval('SourceType', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Source Type as correct">
+                ✓
+              </button>
+              <button id="btnX_SourceType" onclick="toggleFieldEval('SourceType', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Source Type as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_SourceType" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Source Type is incorrect:</span>
+            <textarea id="xNoteInput_SourceType" rows="2" placeholder="e.g. This is a Government Report / Field Guide, not a Journal Article..." 
+                      oninput="onFieldNoteChange('SourceType')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- 8. EVIDENCE TYPE CARD (SINGLE ROW SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg py-1 px-2 shadow-xs">
+          <div class="flex items-center justify-between gap-1.5">
+            <div class="flex items-center gap-1 min-w-0 pr-1 truncate">
+              <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500 shrink-0">8. Evidence:</span>
+              <span id="fieldEvidenceType" class="text-xs font-semibold text-slate-800 truncate">--</span>
+            </div>
+            <!-- Check / X Buttons -->
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="btnCheck_EvidenceType" onclick="toggleFieldEval('EvidenceType', 'check')" class="w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition" title="Mark Evidence Type as correct">
+                ✓
+              </button>
+              <button id="btnX_EvidenceType" onclick="toggleFieldEval('EvidenceType', 'x')" class="w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition" title="Mark Evidence Type as incorrect">
+                ✗
+              </button>
+            </div>
+          </div>
+
+          <!-- Conditional X Note Box -->
+          <div id="xNoteContainer_EvidenceType" class="hidden mt-1.5 pt-1.5 border-t border-rose-200 flex flex-col gap-0.5">
+            <span class="text-[9px] font-bold text-rose-600 uppercase tracking-wider">⚠ Required: Explain why Evidence Type is incorrect:</span>
+            <textarea id="xNoteInput_EvidenceType" rows="2" placeholder="e.g. This is a modeling study, not empirical field data..." 
+                      oninput="onFieldNoteChange('EvidenceType')"
+                      class="w-full bg-rose-50/50 border border-rose-300 rounded p-1.5 text-xs text-slate-800 placeholder-rose-400/60 outline-none focus:border-rose-500 transition"></textarea>
+          </div>
+        </section>
+
+        <!-- GENERAL REVIEWER NOTES (OPTIONAL - SQUEEZED) -->
+        <section class="bg-white border border-slate-200 rounded-lg p-1.5 shadow-xs">
+          <div class="flex items-center justify-between mb-0.5">
+            <label for="generalNotesInput" class="block text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              General Reviewer Notes (Optional):
+            </label>
+            <span class="text-[8px] text-slate-400">Optional</span>
+          </div>
+          <textarea id="generalNotesInput" rows="1" 
+                    placeholder="Optional general notes or lab comments..." 
+                    class="w-full bg-slate-50 border border-slate-300 rounded p-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none focus:border-emerald-500 focus:bg-white transition"></textarea>
+        </section>
+
+        <!-- BOTTOM PROGRESS & NEXT ENTRY BUTTON (SQUEEZED) -->
+        <div class="flex flex-col gap-1 pt-0.5 pb-3">
+          <div id="evalProgressText" class="text-[10px] text-center text-slate-500 font-medium">
+            Please evaluate all 8 fields above (0 of 8 complete)
+          </div>
+          <button id="btnNextEntry" onclick="handleNextEntrySubmit()" disabled 
+                  class="w-full py-2.5 rounded-lg font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300">
+            <span>NEXT ENTRY</span> <span>&rarr;</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDE: CLEAN BLANK SPACE FOR EFFORTLESS SPLIT-SCREEN WINDOWS -->
+      <div class="hidden xl:flex flex-1 min-h-[580px] rounded-xl border-2 border-dashed border-slate-300 items-center justify-center p-6 text-center bg-white/60">
+        <div class="max-w-md space-y-2 opacity-60 select-none">
+          <div class="text-2xl">🪟</div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Single-Monitor Split-Screen Area</h3>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Snap this browser window to the left side of your monitor, and open your companion paper window or PDF reader on the right side for effortless side-by-side verification.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- TAB 2: LIVE SPREADSHEET QUEUE (ALL 542 ENTRIES WITH COMMENTS)  -->
+  <!-- ============================================================== -->
+  <main id="view-spreadsheet" class="max-w-[1700px] mx-auto hidden">
+    <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2.5">
+        <div>
+          <h2 class="text-xs md:text-sm font-bold text-slate-900">Master Dataset Spreadsheet Queue (542 Real V13 Citations)</h2>
+          <p class="text-[10px] text-slate-500">Click any row below to immediately load that citation into the Workbench for review.</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <input type="text" id="tableSearchInput" placeholder="Search Species, Hazard, Title..." 
+                 oninput="filterSpreadsheet()"
+                 class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-0.5 text-xs text-slate-800 outline-none focus:border-emerald-500 w-48">
+          
+          <select id="tableStatusFilter" onchange="filterSpreadsheet()" class="bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-2 py-0.5 text-xs font-semibold">
+            <option value="all">All Citations (542)</option>
+            <option value="verified">Verified</option>
+            <option value="revision">Needs Revision</option>
+            <option value="unverified">Unverified (Pending Review)</option>
+            <option value="user" id="optUserEntries">Kira's Entries</option>
+          </select>
+
+          <select id="tableHazardFilter" onchange="filterSpreadsheet()" class="bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-2 py-0.5 text-xs font-semibold">
+            <option value="all">All Hazards</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto border border-slate-200 rounded-lg max-h-[660px]">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 text-slate-600 uppercase text-[9px] z-10">
+            <tr>
+              <th class="py-1.5 px-2">Row</th>
+              <th class="py-1.5 px-2">Status</th>
+              <th class="py-1.5 px-2">Hazard</th>
+              <th class="py-1.5 px-2">Species</th>
+              <th class="py-1.5 px-2">Impact</th>
+              <th class="py-1.5 px-2">Paper Title</th>
+              <th class="py-1.5 px-2">Reported Link</th>
+              <th class="py-1.5 px-2">Comments</th>
+            </tr>
+          </thead>
+          <tbody id="spreadsheetBody" class="divide-y divide-slate-100">
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- TAB 3: TEAM LEADERBOARD & VISUAL BAR GRAPH                    -->
+  <!-- ============================================================== -->
+  <main id="view-leaderboard" class="max-w-[1700px] mx-auto hidden">
+    <div class="bg-white border border-slate-200 rounded-xl p-3 md:p-4 shadow-xs">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
+        <div>
+          <h2 class="text-xs md:text-sm font-bold text-slate-900">Lab Participation Leaderboard</h2>
+          <p class="text-[10px] text-slate-500">Real-time tracking of human validation progress across lab team members.</p>
+        </div>
+        <div class="text-right">
+          <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Total Dataset Verified</span>
+          <div class="text-base md:text-lg font-bold text-emerald-600" id="leaderboardTotalVerified">0 / 542 (0%)</div>
+        </div>
+      </div>
+
+      <!-- Horizontal Comparative Bar Chart -->
+      <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-4">
+        <h3 class="text-[9px] font-bold uppercase tracking-wider text-slate-600 mb-2">
+          Comparative Review Output (Entries Validated)
+        </h3>
+        <div class="space-y-2" id="leaderboardBarContainer">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Detailed Reviewer Metrics Table -->
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[9px]">
+          <tr>
+            <th class="py-1.5 px-2.5">Reviewer</th>
+            <th class="py-1.5 px-2.5">Entries Checked</th>
+            <th class="py-1.5 px-2.5">Verified Entries</th>
+            <th class="py-1.5 px-2.5">Flagged for Revision</th>
+            <th class="py-1.5 px-2.5">Agreement Rate</th>
+            <th class="py-1.5 px-2.5">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100" id="leaderboardTableBody">
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT CONTROLLER & DATA ENGINE                            -->
+  <!-- ============================================================== -->
+  <script>
+    // Embedded 542 Real V13 Citations
+    const allEntries = [
+  {
+    "Hazard": "Fires",
+    "Species": "Acacia aneura",
+    "Score": 1.0,
+    "Title": "Inability of fire to control vegetation dynamics in low-productivity mulga (Acacia aneura)-dominated communities of eastern Australia",
+    "Author": "Silcock, J. L., Drimer, J., Fraser, J., Fensham, R. J.",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Empirical",
+    "Link": "https://doi.org/10.1071/WF17011",
+    "DOI": "10.1071/wf17011",
+    "Journal": "International Journal of Wildland Fire",
+    "Summary": "High-severity fires cause significant mortality in mature Acacia aneura trees, and the majority of mulga saplings are killed regardless of fire severity.",
+    "Quote": "Mortality of mature mulga trees was positively correlated with fire severity ... High-severity fires killed the majority of mulga ... The majority of mulga saplings were killed across all sites regardless of fire severity.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 1,
+    "excelRow": 1
+  },
+  {
+    "Hazard": "Fires",
+    "Species": "Acacia aneura",
+    "Score": 1.0,
+    "Title": "Fire maintains an Acacia aneura shrubland \u2013 Triodia grassland mosaic in central Australia",
+    "Author": "Bowman, D. M. J. S., Boggs, G. S., Prior, L. D.",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Empirical",
+    "Link": "https://www.sciencedirect.com/science/article/abs/pii/S0140196307001152",
+    "DOI": "10.1016/j.jaridenv.2007.04.001",
+    "Journal": "Journal of Arid Environments",
+    "Summary": "Acacia aneura shrubland patches are fire-sensitive, with small patches being most susceptible to contraction due to burning. Large and sustained changes to fire regimes could lead to the dominance of Triodia grasslands over Acacia aneura.",
+    "Quote": "Patches of fire-sensitive, closed-canopy Acacia aneura shrubland occur within a matrix of highly flammable Triodia grasslands ... Fire effects on boundaries were mediated by the size of A. aneura patches, with small patches most likely to contract ... However these feedbacks might eventually be overwhelmed by large and sustained changes to fire regimes, leading to the landscape-wide dominance of Triodia grasslands.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 2,
+    "excelRow": 2
+  },
+  {
+    "Hazard": "Floods",
+    "Species": "Euastacus armatus",
+    "Score": 1.0,
+    "Title": "Hypoxic blackwater event severely impacts Murray crayfish (Euastacus armatus) populations in the Murray River, Australia",
+    "Author": "Bernard McCarthy, Sylvia Zukowski, Nick Whiterod, Lorenzo Vilizzi, Leah Beesley, Alison Jane King",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1111/aec.12109",
+    "DOI": "",
+    "Journal": "",
+    "Summary": "Prolonged flooding in 2010/11 led to a large-scale hypoxic blackwater event in the southern Murray-Darling Basin. This event caused a significant 81% reduction in the abundance of Euastacus armatus populations at affected sites, with crayfish emerging from the water to avoid the poor water quality. The impact was observed across both sexes and all size-classes.",
+    "Quote": "Prolonged flooding in 2010/11 ended a decade of drought and produced a large-scale hypoxic blackwater event across the southern Murray-Darling Basin, Australia. The hypoxic conditions caused fish kills and Murray crayfish Euastacus armatus to emerge from the water onto the river banks to avoid the poor water quality. ... Murray crayfish abundance in 2012 (post-blackwater) was significantly lower at blackwater affected sites (81% reduction from 2010), but not at non-affected sites.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 3,
+    "excelRow": 3
+  },
+  {
+    "Hazard": "OceanDeoxygenation",
+    "Species": "Harpadon nehereus",
+    "Score": 1.0,
+    "Title": "Increase of a hypoxia-tolerant fish, Harpadon nehereus (Synodontidae), as a result of ocean deoxygenation off southwestern China",
+    "Author": "Bin Kang, Andrew Bakun, Longshan Lin, Daniel Pauly",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Empirical",
+    "Link": "https://doi.org/10.1007/s10641-021-01130-7",
+    "DOI": "10.1007/s10641-021-01130-7",
+    "Journal": "Environmental Biology of Fishes",
+    "Summary": "Ocean deoxygenation has led to a significant increase in the abundance of *Harpadon nehereus* (Bombay duck) off southeastern China. This species is hypoxia-tolerant due to the high water content (approximately 90%) in its muscle and other tissues, which reduces its oxygen requirements. This physiological adaptation allows it to outcompete other fish species in low-oxygen neritic and estuarine waters, resulting in an explosive population growth and a shift in marine community structure.",
+    "Quote": "We report a sudden explosive rise in abundance off southeastern China of a fish species that is hypoxia-tolerant, Bombay duck (Harpadon nehereus, Family Synodontidae) ... We suggest that this is made possible by the very high water content of its muscle and other tissues (about 90%, vs 75\u201380% for other coastal fish), which reduces its oxygen requirements and allows it to outcompete other fish in low-oxygen neritic and estuarine waters.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 4,
+    "excelRow": 4
+  },
+  {
+    "Hazard": "Ozone",
+    "Species": "Fraxinus ornus",
+    "Score": 1.0,
+    "Title": "Structural and physiological responses to ozone in Manna ash (Fraxinus ornus L.) leaves of seedlings and mature trees under controlled and ambient conditions",
+    "Author": "Elena Paoletti, Nicla Contran, Petra Bernasconi, Madeleine S. G\u00fcnthardt-Goerg, Pierre Vollenweider",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "experimental",
+    "Link": "https://doi.org/10.1016/j.scitotenv.2008.11.061",
+    "DOI": "10.1016/j.scitotenv.2008.11.061",
+    "Journal": "Science of The Total Environment",
+    "Summary": "Ozone exposure, both in controlled experimental conditions and ambient environments, caused detrimental structural and physiological impacts on Fraxinus ornus. These effects included visible leaf injury like reddening and stippling, damage to mesophyll and upper assimilating cell layers, and impaired carbon assimilation and stomatal function. Juvenile trees exhibited more severe responses compared to mature trees.",
+    "Quote": "In both exposure conditions, the main structural impact of O3 was on the mesophyll and especially the upper assimilating cell layers. The main physiological impact was on carbon assimilation and on stomatal sluggishness.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 5,
+    "excelRow": 5
+  },
+  {
+    "Hazard": "Precipitation",
+    "Species": "Eugerres brasilianus",
+    "Score": 1.0,
+    "Title": "Patterns of spatial distribution of five species of mojarras (Actinopterygii: Gerreidae) in a small tropical estuary in south-eastern Brazil",
+    "Author": "Taynara Pontes Franco, Leonardo Mitrano Neves, Tatiana Pires Teixeira, Francisco Gerson Ara\u00fajo",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1017/S0025315411000609",
+    "DOI": "10.1017/s0025315411000609",
+    "Journal": "Journal of the Marine Biological Association of the United Kingdom",
+    "Summary": "Precipitation, specifically the rainy season, beneficially impacts Eugerres brasilianus by increasing its abundance and density. Juveniles of the species also utilize the upper and middle estuary as nursery grounds during the early-rainy season.",
+    "Quote": "Eugerres brasilianus was most abundant during the rainy season.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 6,
+    "excelRow": 6
+  },
+  {
+    "Hazard": "CO2",
+    "Species": "Eugenia stipitata",
+    "Score": 0.0,
+    "Title": "Effect of modified atmosphere packaging (MAP) in the antioxidant capacity of araz\u00e1 (Eugenia stipitata McVaugh), naranjilla (Solanum quitoense Lam.), and tree tomato (Solanum betaceum Cav.) fruits from Ecuador",
+    "Author": "Wilma Llerena, Iv\u00e1n Samaniego, Montserrat Navarro, Jacqueline Ort\u00edz, Ignacio Ang\u00f3s, Wilman Carrillo",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "experimental",
+    "Link": "https://doi.org/10.1111/jfpp.14757",
+    "DOI": "10.1111/jfpp.14757",
+    "Journal": "Journal of Food Processing and Preservation",
+    "Summary": "Modified atmosphere packaging (MAP) with varying concentrations of carbon dioxide (2.5%, 5.0%, 10% CO2) significantly increased the antioxidant capacity (AC) of *Eugenia stipitata* (araz\u00e1) fruits during cold storage for up to 4 days, compared to fruits stored in air, indicating a beneficial effect on fruit quality preservation.",
+    "Quote": "AC of the fruit treated with MAPs for 1 (926.15 \u00b5mol TE/100 g DW) and 4 (925.38 \u00b5mol TE/100 g DW) days of storage were higher than for zero days storage. The application of MAP produces an effect on the araz\u00e1 AC. AC of the fruit treated with MAP was higher than the AC of the fruit treated with air.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Fail - The study focuses on modified atmosphere packaging and cold storage of fruits for quality preservation, which is a post-harvest food processing and preservation context, not an ecologically relevant process involving living species in their natural environment.",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 7,
+    "excelRow": 7
+  },
+  {
+    "Hazard": "CO2",
+    "Species": "Pecten maximus",
+    "Score": 1.0,
+    "Title": "Juvenile king scallop, Pecten maximus, is potentially tolerant to low levels of ocean acidification when food is unrestricted",
+    "Author": "Matthew Burton Sanders, Tim P. Bean, Thomas H. Hutchinson, Will J. F. Le Quesne",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Experimental",
+    "Link": "https://doi.org/10.1371/journal.pone.0074118",
+    "DOI": "10.1371/journal.pone.0074118",
+    "Journal": "PLoS ONE",
+    "Summary": "Juvenile Pecten maximus demonstrated tolerance to limited changes in seawater chemistry (elevated pCO2) when food was abundant, showing no significant effects on oxygen consumption, clearance rates, condition index, or cellular turnover.",
+    "Quote": "None of the exposure levels were found to have significant effect on the clearance rates, respiration rates, condition index or cellular turnover (RNA: DNA) of individuals. While it is clear that some life stages of marine bivalves appear susceptible to future levels of ocean acidification, particularly under food limiting conditions, the results from this study suggest that where food is in abundance, bivalves like juvenile P. maximus may display a tolerance to limited changes in seawater chemistry.",
+    "ImpactDirection": "neutral",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 8,
+    "excelRow": 8
+  },
+  {
+    "Hazard": "Drought",
+    "Species": "Fraxinus ornus",
+    "Score": 0.8333333333333334,
+    "Title": "hydraulic conductance of Fraxinus ornus leaves is constrained by soil water availability and coordinated with gas exchange rates",
+    "Author": "Andrea Nardini, Martina Tomasella, Stefano Savi, Patrizia Trifil\u00f2",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1093/treephys/tpp028",
+    "DOI": "10.1093/treephys/tpn053",
+    "Journal": "Tree Physiology",
+    "Summary": "Low soil water availability (drought) detrimentally impacts Fraxinus ornus by leading to reduced leaf hydraulic conductance (Kleaf), leaf conductance to water vapor (gL), and leaf water potential (\u03a8leaf). The down-regulation of Kleaf is considered a component of adaptation to drought-prone habitats, which implies reduced gas exchange.",
+    "Quote": "Plants growing in arid sites had lower Kleaf, gL and \u03a8leaf than those growing in sites with higher water availability. ... Our data suggest that down-regulation of Kleaf is a component of adaptation of plants to drought-prone habitats. Low Kleaf implies reduced gas exchange which may, in turn, influence the climatic conditions on a local/regional scale.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Fail - The DOI in the 'Link' field (10.1093/treephys/tpp028) is incorrect; the correct DOI for this article is 10.1093/treephys/tpn053, which is correctly listed in the 'DOI' field.",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 9,
+    "excelRow": 9
+  },
+  {
+    "Hazard": "Drought",
+    "Species": "Flammulina velutipes",
+    "Score": 1.0,
+    "Title": "The Cultivation of Flammulina velutipesby Using Sunflower Residues as Mushroom Substrate",
+    "Author": "Wang, G., Liu, C., Shen, N., Wu, Y., Bian, Y., Xiao, Y.",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.18178/joaat.4.2.140-144",
+    "DOI": "10.18178/joaat.4.2.140-144",
+    "Journal": "Journal of Advanced Agricultural Technologies",
+    "Summary": "Water shortage, a form of drought, has a detrimental impact on the fruiting bodies of Flammulina velutipes, affecting their development or yield during cultivation.",
+    "Quote": "fruiting bodies due to water shortage.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 10,
+    "excelRow": 10
+  },
+  {
+    "Hazard": "Floods",
+    "Species": "Eutrema japonicum",
+    "Score": 0.0,
+    "Title": "Nutritional characterization on growth and ionome profiles in Japanese wasabi cultivars (Eutrema japonicum) under hydroponics",
+    "Author": "Hiroto Yamashita, Harumi Mihara, Susumu Hisamatsu, Akio Morita, Takashi Ikka",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1080/00380768.2023.2276716",
+    "DOI": "10.1080/00380768.2023.2276716",
+    "Journal": "Soil Science and Plant Nutrition",
+    "Summary": "Traditional cultivation of Japanese wasabi in terraced fields with running stream water conditions is associated with producing a high-quality yield.",
+    "Quote": "Japanese wasabi is traditionally cultivated in terraced fields with running stream water conditions which typically produce a high-quality of yield.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Fail - The article discusses 'flooded cultivation systems' and 'running stream water conditions' as beneficial traditional cultivation methods for Eutrema japonicum, not 'Floods' as a detrimental hazard.",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Fail - The impact direction 'beneficial' refers to a controlled 'flooded cultivation system' as an optimal condition for wasabi, not to 'Floods' as a hazard. The AI incorrectly identified 'Floods' as the hazard when the source describes a beneficial cultivation method involving water.",
+    "SampleID": 11,
+    "excelRow": 11
+  },
+  {
+    "Hazard": "Heatwaves",
+    "Species": "Glyptocephalus zachirus",
+    "Score": 1.0,
+    "Title": "State of the California Current 2019\u20132020: Back to the Future With Marine Heatwaves?",
+    "Author": "William J. Sydeman, Jarrod A. Santora, Elliott L. Hazen, Isaac D. Schroeder, John C. Field, Brian K. Wells, Andrew Leising, Steven J. Bograd, Edward D. Weber, Ryan R. Rykaczewski, William T. Peterson, Richard D. Brodeur, Toby D. Auth, Anthony J. Phillips, Christine M. Harvey, Jeffrey M. Dambacher, Cheryl A. Morgan, Jennifer L. Fisher, Andrew M. Thompson, Jessica A. Miller, Jennifer L. Boldt, Kelly M. Andrews, Sarah A. Thompson, Jennifer E. Zamon, Julia K. Parrish, Rachael A. Orben, Heather L. Renner, Julie A. Thayer, David J. Welch, Stephen R. Alin, Simone R. Alin, Nina Bednar\u0161ek, Francis Chan, Burke Hales, Jack A. Barth, Christopher A. Edwards, Robert K. Shearman, Christopher L. Sabine, Adrienne J. Sutton, Jan A. Newton, Parker MacCready, Nick Bond, Kevin D. Lafferty, Erin L. Aiello, Eric J. Bjorkstedt, John C. Garza, Steven J. Lindley, Michael J. O'Farrell, John C. Williams, Kristen M. Miller, Michael G. Jacox, Michael A. Alexander, Dillon J. Amaya, Samantha J. Siedlecki, Michael J. Ford, Michael J. Malick, Brian J. Burke, Daniel L. Bottom, John C. Steinbeck",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.3389/fmars.2021.717111",
+    "DOI": "10.3389/fmars.2021.709454",
+    "Journal": "Frontiers in Marine Science",
+    "Summary": "During the 2019-2020 marine heatwave in the North Pacific, Rex Sole (*Glyptocephalus zachirus*) was observed to occur at greater than average densities compared to the long-term average, indicating a beneficial impact on its abundance during this period.",
+    "Quote": "and Rex Sole Glyptocephalus zachirus still occurred at greater than average densities relative to the long term (Figure 9).",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 12,
+    "excelRow": 12
+  },
+  {
+    "Hazard": "Heatwaves",
+    "Species": "Falco peregrinus",
+    "Score": 1.0,
+    "Title": "New Study Reveals How Climate Change Is Reshaping the Breeding Season for Arctic Falcons",
+    "Author": "The Peregrine Fund",
+    "SourceType": "News Outlet / Science Journalism",
+    "EvidenceType": "empirical",
+    "Link": "https://peregrinefund.org/newsroom/new-study-reveals-how-climate-change-reshaping-breeding-season-arctic-falcons",
+    "DOI": "",
+    "Journal": "",
+    "Summary": "A study on Arctic falcons, including Peregrine Falcons, found that warmer summer temperatures were associated with a detrimental impact, leading to fewer surviving young. Heat stress is suggested as a primary cause, particularly for nestlings in exposed nesting sites.",
+    "Quote": "One of the study's more unexpected findings was that warmer summer temperatures were linked to fewer surviving young in both species. Researchers hadn't predicted this result in a region known for being cold. One possible explanation is heat stress: young birds in the nest may struggle to regulate their body temperature during unusually warm spells, particularly in exposed nest sites with little shade.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 13,
+    "excelRow": 13
+  },
+  {
+    "Hazard": "NaturalCoverChange",
+    "Species": "Parapenaeus longirostris",
+    "Score": 1.0,
+    "Title": "Learning from the history of red shrimp fisheries in the Mediterranean to improve sustainability of deep-water bottom trawling",
+    "Author": "Fabio Fiorentino, Germana Garofalo, Gioacchino Bono, Sergio Vitale",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1093/icesjms/fsae031",
+    "DOI": "10.1093/icesjms/fsae031",
+    "Journal": "ICES Journal of Marine Science",
+    "Summary": "Bottom trawling, through its mechanical effects, causes natural cover change that detrimentally impacts the habitat of Parapenaeus longirostris. This practice reduces the coverage of habitat-forming species and causes sediment resuspension, disturbing the seafloor where these deep-water shrimps reside.",
+    "Quote": "The impact of deep-water fisheries on benthic communities in the Ligurian Sea is a well-described issue in the literature regarding both soft and hard bottoms (Cattaneo Vietti et al. 2010, Bo et al. 2014). These impacts are due to the mechanical effects of bottom trawling, which reduces the coverage of habitat-forming species, such as cnidarians and sponges, affecting the diversity and abundance of associated organisms, and produces the sediment resuspension causing habitat disturbance.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 14,
+    "excelRow": 14
+  },
+  {
+    "Hazard": "NaturalCoverChange",
+    "Species": "Parapenaeus longirostris",
+    "Score": 1.0,
+    "Title": "The crustacean Parapenaeus longirostris as pollution sentinel in an impacted area of the NW Mediterranean Sea",
+    "Author": "Nos David, Omedes Sergi, Castro Jimenez Javier, Sol\u00e9 Montserrat",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1016/j.rsma.2026.105174",
+    "DOI": "10.1016/j.rsma.2026.105174",
+    "Journal": "Regional Studies in Marine Science",
+    "Summary": "Chemical pollution, including organophosphate esters (OPEs), represents a natural cover change that detrimentally impacts Parapenaeus longirostris. Shrimps from areas with higher pollution loads showed increased activities of detoxification enzymes (GST, GPX, CEs) and higher oxidative stress damage.",
+    "Quote": "On one hand, our results showed, that the activities of GST, GPX and CEs were higher in central (Barcelona) and southern (La R\u00e0pita) sites, areas considered chronically exposed to higher pollution loads. Shrimps from La R\u00e0pita displayed the highest amount of oxidative stress damage. On the other hand, the presence of certain OPEs in shrimp muscle was confirmed in the three sites.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 15,
+    "excelRow": 15
+  },
+  {
+    "Hazard": "OceanAcidification",
+    "Species": "Furcellaria lumbricalis",
+    "Score": 1.0,
+    "Title": "Ocean acidification may threaten a unique seaweed community and associated industry in the Baltic Sea",
+    "Author": "Liina Pajusalu, Gerli Albert, Evangeline Fachon, Christopher D. Hepburn, Jonne Kotta, Kiran Liversage, Tiina Paalme, Anneliis Peterson, Daniel W. Pritchard, Arno P\u00f5llum\u00e4e, Kaire Torn, Georg Martin",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Experimental",
+    "Link": "https://doi.org/10.1007/s10811-019-01925-5",
+    "DOI": "10.1007/s10811-019-01935-1",
+    "Journal": "Journal of Applied Phycology",
+    "Summary": "*Furcellaria lumbricalis*, which utilizes a CO2 concentrating mechanism (CCM), exhibited poorer performance when exposed to a broader range of dissolved inorganic carbon (DIC) concentrations characteristic of future ocean acidification scenarios. This suggests a detrimental impact on its competitive ability within a mixed algal community.",
+    "Quote": "F. lumbricalis (operating with a CO2 concentrating mechanism or CCM) performed worse along the broader range of DIC concentrations compared to C. truncatus (non-CCM), especially those characterized under future climate conditions.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 16,
+    "excelRow": 16
+  },
+  {
+    "Hazard": "OceanAcidification",
+    "Species": "Acanthopagrus schlegeli",
+    "Score": 1.0,
+    "Title": "Experimental Studies on the Impact of the Projected Ocean Acidification on Fish Survival, Health, Growth, and Meat Quality; Black Sea Bream (Acanthopagrus Schlegelii), Physiological and Histological Studies",
+    "Author": "Fabrice Arnaud Tegomo, Zhiwen Zhong, Achille Pandong Njomoue, Samuel Ukpong Okon, Sami Ullah, Neveen Anandi Gray, Kai Chen, Yuxiao Sun, Jinxing Xiao, Lei Wang, Ying Ye, Hui Huang, Qingjun Shao",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Experimental",
+    "Link": "https://www.researchgate.net/publication/355799763_Experimental_Studies_on_the_Impact_of_the_Projected_Ocean_Acidification_on_Fish_Survival_Health_Growth_and_Meat_Quality_Black_Sea_Bream_Acanthopagrus_Schlegelii_Physiological_and_Histological_Studies",
+    "DOI": "10.3390/ani11113119",
+    "Journal": "Animals",
+    "Summary": "Projected ocean acidification scenarios significantly reduced the growth, feed efficiency, and protein efficiency ratios of juvenile Acanthopagrus schlegelii. Histological analysis revealed multiple atrophies of microvilli in the small intestine, impairing nutrient absorption, and liver damage including blood congestion, hemorrhage, necrosis, and vacuolation of hepatocytes.",
+    "Quote": "Fish growth, feeding efficiency, protein efficiency ratio, and crude protein content were significantly decreased with a lower pH. Scanning electron microscopy revealed multiple atrophies of microvilli throughout the small intestine's brush border in samples from Predict_A and Predict_B.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 17,
+    "excelRow": 17
+  },
+  {
+    "Hazard": "OceanCirculationclimate",
+    "Species": "Kappaphycus alvarezii",
+    "Score": 1.0,
+    "Title": "Ocean Acidification and Aquacultured Seaweeds: Progress and Knowledge Gaps",
+    "Author": "Siti Nurhidayu Mohd Zaki, Nor Azman Kasan, Nurul Huda Abdul Wahid, Nurul Fatihah Mohd Zaki, Nurul Huda Mohd Zaki, Nurul Huda Abdul Wahid, Nor Azman Kasan",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://www.mdpi.com/2073-4395/13/1/129",
+    "DOI": "10.3390/jmse11010078",
+    "Journal": "Journal of Marine Science and Engineering",
+    "Summary": "Kappaphycus alvarezii has demonstrated the ability to acclimatize to low-pH conditions associated with ocean acidification, suggesting a capacity to neutralize potentially detrimental effects.",
+    "Quote": "Other studies have shown that Kappaphycus alvarezii and Sargassum vulgare were able to acclimatise in low-pH conditions (pH 6 and pH 6.7, respectively) [74]",
+    "ImpactDirection": "neutralized (adapted)",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 18,
+    "excelRow": 18
+  },
+  {
+    "Hazard": "OceanCirculationclimate",
+    "Species": "Hippoglossus stenolepis",
+    "Score": 1.0,
+    "Title": "Pathways between Climate, Fish, Fisheries, and Management: A Conceptual Integrated Ecosystem Management Approach",
+    "Author": "K. A. Holsman, A. B. Hollowed, J. F. Piatt, K. D. E. Ciannelli, S. K. Gaichas, T. E. Essington, J. A. Hare, R. J. Foy",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Informational/Synthesis",
+    "Link": "https://doi.org/10.3390/jmse10030338",
+    "DOI": "10.3390/jmse10030338",
+    "Journal": "Journal of Marine Science and Engineering",
+    "Summary": "The Bering Sea Current (BSC) transports Pacific halibut eggs and larvae to the Outer Shelf Domain, where the habitat is more conducive to higher survival rates.",
+    "Quote": "The BSC is important due to its transport of heat and nutrients, but it also transports the eggs and larvae of several demersal fish species, such as Walleye Pollock [46], Greenland (Reinhardtius hippoglossoides) and Pacific halibut (Hippoglossus stenolepis) [47], and other flat fishes [48], from the oceanic and slope region to the Outer Shelf Domain, where the habitat is more conducive to result in higher survival rates.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 19,
+    "excelRow": 19
+  },
+  {
+    "Hazard": "OceanDeoxygenation",
+    "Species": "Lamellidens marginalis",
+    "Score": 1.0,
+    "Title": "Effects of dissolved oxygen concentrations on growth, survival and gonadal development of freshwater pearl mussel Lamellidens marginalis",
+    "Author": "Md. Fida Hassan Kafi, Md. Hasibul Islam, Md. Helal Uddin, Kizar Ahmed Sumon, Harunur Rashid",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "experimental",
+    "Link": "https://doi.org/10.52168/bjf.2021.33.12",
+    "DOI": "10.52168/bjf.2021.33.12",
+    "Journal": "Bangladesh Journal of Fisheries",
+    "Summary": "This experimental study demonstrated that low dissolved oxygen (hypoxia), a condition linked to broader ocean deoxygenation trends, significantly impairs the growth, reduces the survival rate, and retards the gonadal development (both ovarian and testicular) of the freshwater pearl mussel Lamellidens marginalis.",
+    "Quote": "The current findings indicate that hypoxia slows down growth, reduces survival rate and retards development of reproductive organs in L. marginalis.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 20,
+    "excelRow": 20
+  },
+  {
+    "Hazard": "Ozone",
+    "Species": "Gadus morhua",
+    "Score": 0.0,
+    "Title": "Impact of gaseous ozone treatment of fish carcasses (Gadus morhua) on the microbiological load and their quality",
+    "Author": "Piotr Antos, Tomasz Piechowiak, Maciej Balawejder, Karolina Kowalczyk, Krzysztof Tereszkiewicz",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "experimental",
+    "Link": "https://doi.org/10.1371/journal.pone.0327866",
+    "DOI": "10.1371/journal.pone.0327866",
+    "Journal": "PLOS One",
+    "Summary": "Gaseous ozone treatment significantly reduced the microbial load on Gadus morhua (Atlantic cod) carcasses, thereby improving their microbial safety and indicating a potential for extending their shelf life.",
+    "Quote": "The use of the ozone procedure resulted in a statistically significant reduction of the microbial load expressed as the amount of colony forming units on the fish matrix This indicates, a potential for extension of shelf life of fish products.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Fail - The study focuses on the treatment of fish carcasses for extending the shelf life of food products, which is a post-death processing application and not ecologically relevant.",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 21,
+    "excelRow": 21
+  },
+  {
+    "Hazard": "Precipitation",
+    "Species": "Parachanna obscura",
+    "Score": 0.0,
+    "Title": "A review of biology, ecology and prospect for aquaculture of Parachanna obscura",
+    "Author": "Diane N. S. Kpogue, Guy A. Mensah, Emile D. Fiogbe",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1007/s11160-012-9289-4",
+    "DOI": "10.1007/s11160-012-9281-7",
+    "Journal": "Reviews in Fish Biology and Fisheries",
+    "Summary": "Hydroclimatic changes, including extreme precipitation events like floods and prolonged droughts, have led to a significant decline in the quantity of Parachanna obscura collected from natural stocks.",
+    "Quote": "However, in the past two decades, there has been a significant decline in the quantity of fish collected owing to the adverse effects of hydroclimatic changes, such as floods and prolonged droughts.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Fail - The provided quote is not found in the specified source by Kpogue et al. (2012/2013) but appears in other articles discussing fish decline in Benin due to hydroclimatic changes.",
+    "Summary_Pass": "Fail - The summary's core claim that 'Hydroclimatic changes, including extreme precipitation events like floods and prolonged droughts, have led to a significant decline in the quantity of Parachanna obscura collected from natural stocks' is based on the hallucinated quote and is not explicitly stated as a detrimental impact in the Kpogue et al. (2012/2013) paper.",
+    "Mention_Pass": "Fail - While 'Parachanna obscura' is the subject of the paper, 'Precipitation' (as floods/hydroclimatic changes) is not discussed as a detrimental hazard causing a decline in the species' quantity in the Kpogue et al. (2012/2013) paper. Floods are mentioned in the context of breeding, not as a cause for decline.",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Fail - The 'detrimental' impact direction, as described in the summary (decline due to hydroclimatic changes, floods, and droughts), is not supported by the content of the Kpogue et al. (2012/2013) paper. The paper mentions overexploitation of natural stocks but does not attribute a decline to precipitation or hydroclimatic changes.",
+    "SampleID": 22,
+    "excelRow": 22
+  },
+  {
+    "Hazard": "SeaLevelRise",
+    "Species": "Eugerres brasilianus",
+    "Score": 1.0,
+    "Title": "An Arctic Paradox: Response of Fluvial Hg Inputs and Bioavailability to Global Climate Change in an Extreme Coastal Environment",
+    "Author": "Luiz Drude de Lacerda, Rozane Valente Marins, Francisco Jos\u00e9 da Silva Dias",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.3389/fmars.2020.00331",
+    "DOI": "10.3389/feart.2020.00093",
+    "Journal": "Frontiers in Earth Science",
+    "Summary": "Rising sea levels contribute to marine water intrusion into estuaries, altering hydrodynamics and biogeochemical cycles. This leads to an increased transfer and bioavailability of pollutants like mercury, resulting in higher mercury concentrations in marine biota, including Eugerres brasilianus, particularly in the lower estuary where these processes are more pronounced.",
+    "Quote": "rising sea level pushes shelf and coastal waters into estuaries. ... biogeochemical changes result in a greater transfer of pollutants from the continent to the sea with resultant contamination of marine biota. ... the fish Eugerres brasilianus, which respond to variations in dissolved Hg in water and Hg content in their diet, are present in higher concentrations in the lower estuary compared to the upper reaches, where fluvial influence is strongest (Figure 4A).",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 23,
+    "excelRow": 23
+  },
+  {
+    "Hazard": "Storms",
+    "Species": "Acer saccharum",
+    "Score": 1.0,
+    "Title": "Differences in the damage caused by glaze ice on codominant Acer saccharum and Fagus grandifolia",
+    "Author": "Serge Melancon, Martin J. Lechowicz",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "empirical",
+    "Link": "https://doi.org/10.1139/b87-161",
+    "DOI": "10.1139/b87-161",
+    "Journal": "Canadian Journal of Botany",
+    "Summary": "A severe glaze ice storm had a destructive impact on codominant Acer saccharum trees in a mature southern Quebec forest, although the impact was greater on Fagus grandifolia.",
+    "Quote": "A severe glaze ice storm had greater destructive impact on Fagus grandifolia than on codominant Acer saccharum trees in a mature southern Quebec.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 24,
+    "excelRow": 24
+  },
+  {
+    "Hazard": "Storms",
+    "Species": "Acrochordus arafurae",
+    "Score": 1.0,
+    "Title": "Rain, fish and snakes: climatically driven population dynamics of Arafura filesnakes in tropical Australia",
+    "Author": "T. Madsen, R. Shine",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Empirical",
+    "Link": "https://doi.org/10.1007/S004420050008",
+    "DOI": "10.1007/s004420050008",
+    "Journal": "Oecologia",
+    "Summary": "High rainfall patterns, characteristic of tropical storms and wet seasons, lead to prolonged floodplain inundation, which in turn results in increased fish abundance. This enhanced food availability positively impacts Acrochordus arafurae, leading to filesnakes being in good body condition and a higher proportion of adult females being reproductive.",
+    "Quote": "High rainfall late in the wet season (February-March) caused prolonged inundation of the floodplain. Following such years, dry-season sampling revealed that fishes were abundant, filesnakes were in good body condition, and a high proportion of adult female filesnakes were reproductive.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 25,
+    "excelRow": 25
+  },
+  {
+    "Hazard": "Warming",
+    "Species": "Euphausia superba",
+    "Score": 0.0,
+    "Title": "Projected shifts in Antarctic krill habitat by 2100",
+    "Author": "Devi Veytia, Andrew J. Constable, So Kawaguchi, Kerrie M. Swadling, Ben Raymond, Jan Strugnell, Stephen Nicol",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Modeling",
+    "Link": "https://doi.org/10.1038/s41558-020-0771-7",
+    "DOI": "10.1002/2016gl069656",
+    "Journal": "Geophysical Research Letters",
+    "Summary": "Modeling projections suggest that ocean warming could beneficially impact Euphausia superba habitat in some areas and seasons, with an expected improvement in spring habitat quality, particularly further south and on the continental shelf.",
+    "Quote": "We found that over the coming decades krill habitat quality can be expected to improve in spring, particularly further south and on the continental shelf.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Fail - The provided quote is a paraphrase and not an exact match to the source text's abstract.",
+    "Summary_Pass": "Fail - The JSON output includes hallucinated DOI (10.1002/2016gl069656) and Journal (Geophysical Research Letters) information that belongs to a different paper, compromising the integrity of the source metadata.",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 26,
+    "excelRow": 26
+  },
+  {
+    "Hazard": "Warming",
+    "Species": "Etmopterus spinax",
+    "Score": 1.0,
+    "Title": "Environmental preferences and critical habitat for the velvet belly lanternshark (Etmopterus spinax) in Icelandic waters",
+    "Author": "Helga Matt\u00edna, Steven E. Campana, Klara Jakobsd\u00f3ttir",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "Modeling",
+    "Link": "https://doi.org/10.1371/journal.pone.0299544",
+    "DOI": "10.1371/journal.pone.0299544",
+    "Journal": "PLOS ONE",
+    "Summary": "Climate-induced warming of the deep ocean is predicted to shift the distribution of the velvet belly lanternshark (Etmopterus spinax) to more northerly waters within Iceland. The species is classified as a stenothermic warm-water species, preferring a narrow temperature range of approximately 6.3\u20138.0\u00b0C, suggesting that a shift in its thermal habitat would lead to a range expansion into previously cooler areas.",
+    "Quote": "However, climate-induced warming of the deep ocean may shift the distribution of the species to more northerly waters within Iceland.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "SampleID": 27,
+    "excelRow": 27
+  },
+  {
+    "Hazard": "OceanAcidification",
+    "Species": "Fucus vesiculosus",
+    "Score": 0.6666666666666666,
+    "Title": "Ocean acidification makes ecologically important seaweed species fragile",
+    "Author": "ScienceDaily",
+    "SourceType": "News Outlet / Science Journalism",
+    "EvidenceType": "Experimental",
+    "Link": "https://scholar.google.com/scholar?q=Ocean%20acidification%20makes%20ecologically%20important%20seaweed%20species%20fragile",
+    "DOI": "",
+    "Journal": "",
+    "Summary": "Fucus vesiculosus grown in acidified water, simulating future ocean acidification, exhibited increased growth and more effective photosynthesis.",
+    "Quote": "The seaweed grown in acidified water actually grew more, photosynthesized more effectively, and showed no significant increase in drag.",
+    "ImpactDirection": "beneficial",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Fail - The summary is incomplete and misleading as it only highlights the beneficial aspects (increased growth and photosynthesis) while omitting the critical negative findings of the study, such as the seaweed becoming fragile and having reduced survival chances.",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Fail - The ImpactDirection is incorrectly stated as 'beneficial'. While the seaweed showed increased growth and photosynthesis, the overall findings indicate a negative impact, as the seaweed became fragile, its tissues weaker, and its overall chances of survival were reduced.",
+    "_sample_tag": "Random Addition",
+    "SampleID": 28,
+    "excelRow": 28
+  },
+  {
+    "Hazard": "Storms",
+    "Species": "Acipenser oxyrinchus",
+    "Score": 1.0,
+    "Title": "Gulf Sturgeon (Acipenser oxyrinchus desotoi) 5-Year Review (2009)",
+    "Author": "NOAA Fisheries and U.S. Fish and Wildlife Service",
+    "SourceType": "Report / Technical Report / Extension Guide",
+    "EvidenceType": "empirical",
+    "Link": "https://repository.library.noaa.gov/view/noaa/10893",
+    "DOI": "10.31390/gradschool_theses.5650",
+    "Journal": "",
+    "Summary": "The Gulf Sturgeon (Acipenser oxyrinchus desotoi) population in the Escambia River system experienced a decline, which may be attributed to the impacts of hurricanes.",
+    "Quote": "The number of Gulf sturgeon in the Escambia River system may have recently declined due to hurricane impacts.",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Pass",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "_sample_tag": "Random Addition",
+    "SampleID": 29,
+    "excelRow": 29
+  },
+  {
+    "Hazard": "OceanCirculationclimate",
+    "Species": "Kappaphycus alvarezii",
+    "Score": 0.0,
+    "Title": "Effects of salinity on the growth rate, carrageenan yield, and cellular structure of Kappaphycus alvarezii (Rhodophyta, Gigartinales) cultured in vitro",
+    "Author": "Leila Hayashi, Gabriel S. M. Faria, Beatriz G. Nunes, Carmen S. Zitta, Lidiane A. Scariot, Ticiane Rover, Marthiellen R. L. Felix, Zenilda L. Bouzon",
+    "SourceType": "Scholarly Journal Article",
+    "EvidenceType": "experimental",
+    "Link": "https://www.researchgate.net/publication/225330836_Effects_of_salinity_on_the_growth_rate_carrageenan_yield_and_cellular_structure_of_Kappaphycus_alvarezii_Rhodophyta_Gigartinales_cultured_in_vitro",
+    "DOI": "10.1007/s10811-010-9595-6",
+    "Journal": "Journal of Applied Phycology",
+    "Summary": "An in vitro study demonstrated that Kappaphycus alvarezii plants died after 3 days when cultured at a low salinity of 15 psu, indicating a detrimental impact of hyposalinity.",
+    "Quote": "Plants kept in 15psu died after 3days",
+    "ImpactDirection": "detrimental",
+    "Title_Pass": "Pass",
+    "Quote_Pass": "Pass",
+    "Summary_Pass": "Pass",
+    "Mention_Pass": "Fail - The extracted evidence discusses salinity as an experimental variable, but the article does not actively discuss \"OceanCirculationclimate\" as the cause of salinity changes in the body text.",
+    "Ecological_Pass": "Pass",
+    "ImpactDirection_Pass": "Pass",
+    "_sample_tag": "Random Addition",
+    "SampleID": 30,
+    "excelRow": 30
+  }
+];
+
+    // Persistence Layer (localStorage)
+    const STORAGE_KEY = "ClimateFood_V14_PilotSample_Reviews";
+    let reviewStore = {};
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) reviewStore = JSON.parse(stored);
+    } catch(e) {
+      console.warn("Storage error", e);
+    }
+
+    let currentIndex = 0;
+    let currentUser = "Kira";
+    let syncedWindow = null;
+    let isWindowSyncActive = false;
+    let isExtensionActive = false;
+
+    // Field evaluation state for currently displayed entry
+    const FIELD_KEYS = ["URL", "Hazard", "Species", "Quote", "Summary", "Impact", "SourceType", "EvidenceType"];
+    let currentEvaluations = {
+      URL: null,
+      Hazard: null,
+      Species: null,
+      Quote: null,
+      Summary: null,
+      Impact: null,
+      SourceType: null,
+      EvidenceType: null
+    };
+
+    let currentFieldNotes = {
+      URL: "",
+      Hazard: "",
+      Species: "",
+      Quote: "",
+      Summary: "",
+      Impact: "",
+      SourceType: "",
+      EvidenceType: ""
+    };
+
+    function checkExtensionInstalled() {
+      if (document.documentElement.dataset.workbenchExtension === "1.0") {
+        if (!isExtensionActive) {
+          isExtensionActive = true;
+          updateSyncButtonStatus(isWindowSyncActive);
+        }
+        return true;
+      }
+      return isExtensionActive;
+    }
+
+    window.addEventListener("WORKBENCH_EXTENSION_READY", () => {
+      checkExtensionInstalled();
+    });
+
+    window.addEventListener("message", (e) => {
+      if (e.data && e.data.type === "WORKBENCH_EXTENSION_INSTALLED") {
+        checkExtensionInstalled();
+      }
+    });
+
+    // Handle companion window closed event from extension
+    window.addEventListener("WORKBENCH_COMPANION_CLOSED", () => {
+      isWindowSyncActive = false;
+      syncedWindow = null;
+      updateSyncButtonStatus(false);
+      showToast("ℹ️ 2nd window closed (Sync unsynced). Click 'Open in 2nd window' to re-open.");
+    });
+
+    window.addEventListener("focus", () => {
+      if (isWindowSyncActive) {
+        window.dispatchEvent(new CustomEvent("WORKBENCH_CHECK_COMPANION"));
+        if (syncedWindow && syncedWindow.closed) {
+          isWindowSyncActive = false;
+          syncedWindow = null;
+          updateSyncButtonStatus(false);
+        }
+      }
+    });
+
+    checkExtensionInstalled();
+    window.postMessage({ type: "PING_WORKBENCH_EXTENSION" }, "*");
+
+    // Precompute paper frequency map across all entries for multi-claim flag
+    const paperGroupMap = new Map();
+    allEntries.forEach(item => {
+      const normTitle = (item.Title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (normTitle && normTitle.length > 5) {
+        if (!paperGroupMap.has(normTitle)) {
+          paperGroupMap.set(normTitle, []);
+        }
+        paperGroupMap.get(normTitle).push(item.excelRow);
+      }
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById("toastNotification");
+      const text = document.getElementById("toastMsg");
+      text.innerText = msg;
+      toast.classList.remove("translate-y-[-100px]", "opacity-0", "pointer-events-none");
+      setTimeout(() => {
+        toast.classList.add("translate-y-[-100px]", "opacity-0", "pointer-events-none");
+      }, 3500);
+    }
+
+    function onUserChange() {
+      currentUser = document.getElementById("userSelector").value;
+      updateExportButtonVisibility();
+      updateSpreadsheetUserFilterLabel();
+      renderCurrentEntry();
+      updateLeaderboard();
+    }
+
+    function updateSpreadsheetUserFilterLabel() {
+      const opt = document.getElementById("optUserEntries");
+      if (opt) {
+        opt.innerText = `${currentUser}'s Entries`;
+      }
+    }
+
+    function updateExportButtonVisibility() {
+      const btn = document.getElementById("btnExportCsv");
+      if (btn) {
+        btn.style.display = (currentUser === "Kira") ? "inline-flex" : "none";
+      }
+    }
+
+    function getEntryReviewStatus(row) {
+      return reviewStore[row] || { status: 'unverified', notes: '', reviewer: '' };
+    }
+
+    // Toggle Field Evaluation (check or x)
+    function toggleFieldEval(fieldId, evalType) {
+      if (currentEvaluations[fieldId] === evalType) {
+        currentEvaluations[fieldId] = null;
+      } else {
+        currentEvaluations[fieldId] = evalType;
+      }
+      updateFieldEvalUI(fieldId);
+      checkValidationCompletion();
+    }
+
+    function updateFieldEvalUI(fieldId) {
+      const checkBtn = document.getElementById("btnCheck_" + fieldId);
+      const xBtn = document.getElementById("btnX_" + fieldId);
+      const noteContainer = document.getElementById("xNoteContainer_" + fieldId);
+      const val = currentEvaluations[fieldId];
+
+      if (val === "check") {
+        checkBtn.className = "w-6 h-6 rounded bg-emerald-600 border-2 border-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs transition";
+        xBtn.className = "w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition";
+        if (noteContainer) noteContainer.classList.add("hidden");
+      } else if (val === "x") {
+        checkBtn.className = "w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition";
+        xBtn.className = "w-6 h-6 rounded bg-rose-600 border-2 border-rose-600 text-white font-bold text-xs flex items-center justify-center shadow-xs transition";
+        if (noteContainer) {
+          noteContainer.classList.remove("hidden");
+          if (fieldId === "URL") {
+            const urlInput = document.getElementById("urlReplacementInput");
+            if (urlInput) {
+              setTimeout(() => urlInput.focus(), 60);
+            }
+          } else {
+            const textarea = document.getElementById("xNoteInput_" + fieldId);
+            if (textarea && !textarea.value.trim()) {
+              setTimeout(() => textarea.focus(), 60);
+            }
+          }
+        }
+      } else {
+        checkBtn.className = "w-6 h-6 rounded border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 flex items-center justify-center font-bold text-xs transition";
+        xBtn.className = "w-6 h-6 rounded border-2 border-rose-500 text-rose-600 hover:bg-rose-50 flex items-center justify-center font-bold text-xs transition";
+        if (noteContainer) noteContainer.classList.add("hidden");
+      }
+    }
+
+    function onFieldNoteChange(fieldId) {
+      const input = document.getElementById("xNoteInput_" + fieldId);
+      currentFieldNotes[fieldId] = input ? input.value : "";
+      checkValidationCompletion();
+    }
+
+    function onUrlReplacementInputChange() {
+      const input = document.getElementById("urlReplacementInput");
+      currentFieldNotes['URL'] = input ? input.value.trim() : "";
+      checkValidationCompletion();
+    }
+
+    function checkValidationCompletion() {
+      let evaluatedCount = 0;
+      let missingNotes = 0;
+      let hasAnyX = false;
+      let missingUrlReplacement = false;
+
+      const item = allEntries[currentIndex];
+
+      FIELD_KEYS.forEach(f => {
+        const val = currentEvaluations[f];
+        if (val !== null) {
+          evaluatedCount++;
+          if (val === "x") {
+            hasAnyX = true;
+            if (f === "URL") {
+              const urlVal = (currentFieldNotes['URL'] || "").trim() || 
+                             (document.getElementById("urlReplacementInput")?.value || "").trim() || 
+                             (reviewStore[item?.excelRow]?.customUrl || "").trim();
+              if (!urlVal) {
+                missingNotes++;
+                missingUrlReplacement = true;
+              }
+            } else {
+              const note = (currentFieldNotes[f] || "").trim();
+              if (!note) {
+                missingNotes++;
+              }
+            }
+          }
+        }
+      });
+
+      const btn = document.getElementById("btnNextEntry");
+      const progressText = document.getElementById("evalProgressText");
+
+      if (evaluatedCount < FIELD_KEYS.length) {
+        const remaining = FIELD_KEYS.length - evaluatedCount;
+        progressText.innerHTML = `<span class="text-slate-500">Please evaluate all 8 fields (${evaluatedCount}/8 completed &middot; ${remaining} remaining)</span>`;
+        btn.disabled = true;
+        btn.className = "w-full py-2.5 rounded-lg font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300";
+        return false;
+      }
+
+      if (missingNotes > 0) {
+        if (missingUrlReplacement) {
+          progressText.innerHTML = `<span class="text-rose-600 font-semibold">⚠ Paste the replacement verified URL above to complete review</span>`;
+        } else {
+          progressText.innerHTML = `<span class="text-rose-600 font-semibold">⚠ ${missingNotes} item${missingNotes > 1 ? 's' : ''} marked ✗ still require${missingNotes === 1 ? 's' : ''} an explanation note</span>`;
+        }
+        btn.disabled = true;
+        btn.className = "w-full py-2.5 rounded-lg font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 bg-rose-100 text-rose-700 border border-rose-300 cursor-not-allowed";
+        return false;
+      }
+
+      // All 8 are evaluated and all required notes/replacements are filled!
+      btn.disabled = false;
+      if (hasAnyX) {
+        progressText.innerHTML = `<span class="text-rose-600 font-semibold">✓ Ready to submit as 'Needs Revision'</span>`;
+        btn.className = "w-full py-2.5 rounded-lg font-bold text-xs shadow-md shadow-rose-200 transition flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transform hover:scale-[1.01] active:scale-[0.99]";
+      } else {
+        progressText.innerHTML = `<span class="text-emerald-700 font-semibold">✓ All 8 fields verified — Ready to advance!</span>`;
+        btn.className = "w-full py-2.5 rounded-lg font-bold text-xs shadow-md shadow-emerald-200 transition flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer transform hover:scale-[1.01] active:scale-[0.99]";
+      }
+      return true;
+    }
+
+    function handleNextEntrySubmit() {
+      if (!checkValidationCompletion()) return;
+
+      const item = allEntries[currentIndex];
+      let hasX = false;
+      const incorrectFieldsList = [];
+      const fieldNotesSummary = [];
+
+      const overrideInput = document.getElementById("urlReplacementInput");
+      const customUrl = overrideInput && overrideInput.value.trim() ? overrideInput.value.trim() : (currentFieldNotes['URL'] || reviewStore[item.excelRow]?.customUrl || undefined);
+
+      FIELD_KEYS.forEach(field => {
+        const val = currentEvaluations[field];
+        if (val === "x") {
+          hasX = true;
+          incorrectFieldsList.push(field);
+          if (field === "URL") {
+            fieldNotesSummary.push(`[URL]: Replaced with: ${customUrl || 'Not specified'}`);
+          } else {
+            const reason = (currentFieldNotes[field] || "").trim();
+            fieldNotesSummary.push(`[${field}]: ${reason}`);
+          }
+        }
+      });
+
+      const generalNote = (document.getElementById("generalNotesInput").value || "").trim();
+      let fullNotes = fieldNotesSummary.join("; ");
+      if (generalNote) {
+        fullNotes = fullNotes ? (fullNotes + " | General: " + generalNote) : generalNote;
+      }
+      if (!fullNotes) {
+        fullNotes = hasX ? "Flagged incorrect fields: " + incorrectFieldsList.join(", ") : "All 8 fields verified";
+      }
+
+      // Propagate customUrl to all claims for this paper
+      const normTitle = (item.Title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const siblingRows = normTitle ? paperGroupMap.get(normTitle) : [item.excelRow];
+
+      reviewStore[item.excelRow] = {
+        status: hasX ? "revision" : "confirmed",
+        reviewer: currentUser,
+        notes: fullNotes,
+        generalNotes: generalNote,
+        evaluations: { ...currentEvaluations },
+        fieldNotes: { ...currentFieldNotes },
+        incorrectFields: incorrectFieldsList,
+        customUrl: customUrl,
+        timestamp: new Date().toISOString()
+      };
+
+      if (customUrl && siblingRows && siblingRows.length > 1) {
+        siblingRows.forEach(rowId => {
+          if (rowId !== item.excelRow) {
+            if (!reviewStore[rowId]) {
+              reviewStore[rowId] = { status: "unverified", customUrl: customUrl };
+            } else {
+              reviewStore[rowId].customUrl = customUrl;
+            }
+            const sibEntry = allEntries.find(e => e.excelRow === rowId);
+            if (sibEntry) sibEntry.Link = customUrl;
+          }
+        });
+      }
+
+      saveStore();
+      showToast(`✓ Entry #${currentIndex + 1} saved as ${hasX ? 'Needs Revision' : 'Verified'}!`);
+
+      advanceEntry();
+    }
+
+    function renderCurrentEntry() {
+      const item = allEntries[currentIndex];
+      if (!item) return;
+
+      const review = getEntryReviewStatus(item.excelRow);
+
+      // Check if this paper or any sibling has a replacement URL saved
+      const normTitle = (item.Title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const group = normTitle ? paperGroupMap.get(normTitle) : null;
+      let paperCustomUrl = review.customUrl;
+      if (!paperCustomUrl && group) {
+        for (const rowId of group) {
+          if (reviewStore[rowId] && reviewStore[rowId].customUrl) {
+            paperCustomUrl = reviewStore[rowId].customUrl;
+            break;
+          }
+        }
+      }
+      if (paperCustomUrl) {
+        item.Link = paperCustomUrl;
+        if (!review.customUrl) review.customUrl = paperCustomUrl;
+      }
+
+      document.getElementById("currentEntryIndex").innerText = currentIndex + 1;
+      document.getElementById("totalEntriesCount").innerText = allEntries.length;
+      document.getElementById("excelRowId").innerText = item.excelRow;
+      document.getElementById("jumpRowInput").value = item.excelRow;
+
+      // Status Badge
+      const statusBadge = document.getElementById("reviewStatusBadge");
+      if (review.status === "confirmed") {
+        statusBadge.className = "text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-300 px-1.5 py-0.2 rounded";
+        statusBadge.innerText = `✓ Verified (${review.reviewer || 'Kira'})`;
+      } else if (review.status === "revision") {
+        statusBadge.className = "text-[9px] font-bold text-rose-700 bg-rose-50 border border-rose-300 px-1.5 py-0.2 rounded";
+        statusBadge.innerText = `✗ Needs Revision (${review.reviewer || 'Kira'})`;
+      } else {
+        statusBadge.className = "text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-300 px-1.5 py-0.2 rounded";
+        statusBadge.innerText = "⏳ Unverified";
+      }
+
+      document.getElementById("evidenceBadge").innerText = item.EvidenceType || "empirical";
+
+      // Multi-claim paper indicator
+      const multiBadge = document.getElementById("paperMultiClaimBadge");
+      if (group && group.length > 1) {
+        const pos = group.indexOf(item.excelRow) + 1;
+        multiBadge.innerText = `📄 ${pos} of ${group.length} claims`;
+        multiBadge.title = `This paper has ${group.length} total entries in the dataset (Rows: ${group.join(", ")})`;
+        multiBadge.classList.remove("hidden");
+      } else {
+        multiBadge.classList.add("hidden");
+      }
+
+      document.getElementById("entryTitle").innerText = item.Title || "Untitled Paper";
+      document.getElementById("entryTitle").title = item.Title || "";
+      document.getElementById("entryAuthor").innerText = item.Author || "Authors not explicitly stated";
+
+      // 1. URL (strictly 1 line with truncate)
+      const link = item.Link || "";
+      const linkEl = document.getElementById("fieldUrlLink");
+      linkEl.href = link;
+      linkEl.innerText = link || "No URL reported";
+      linkEl.title = link || "No URL reported";
+
+      const urlRepInput = document.getElementById("urlReplacementInput");
+      if (urlRepInput) {
+        urlRepInput.value = review.customUrl || "";
+      }
+
+      // 2. Hazard & 3. Species
+      document.getElementById("fieldHazard").innerText = item.Hazard || "--";
+      document.getElementById("fieldSpecies").innerText = item.Species || "--";
+
+      // 4. Verbatim Quote (no quotation marks, clean italic copy)
+      let rawQuote = item.Quote || "No verbatim quote provided.";
+      rawQuote = rawQuote.replace(/^["“]+|["”]+$/g, '').trim();
+      const quoteText = rawQuote;
+      document.getElementById("fieldQuoteShort").innerHTML = `${escapeHtml(quoteText.slice(0, 140))}${quoteText.length > 140 ? '...' : ''}` + (quoteText.length > 140 ? ' <span class="text-emerald-600 font-semibold underline text-[9px] not-italic block mt-0.5">Read Full Quote &rarr;</span>' : '');
+      document.getElementById("fieldQuoteFull").innerHTML = `${escapeHtml(quoteText)} <button class="text-emerald-600 font-semibold text-[9px] not-italic block mt-0.5 hover:underline" onclick="toggleExpandQuote()">&uarr; Collapse</button>`;
+
+      // 5. Summary
+      const summaryText = item.Summary || "No summary provided.";
+      document.getElementById("fieldSummaryShort").innerHTML = escapeHtml(summaryText.slice(0, 150)) + (summaryText.length > 150 ? '... <span class="text-emerald-600 font-semibold underline text-[9px] block mt-0.5">Read Full Summary &rarr;</span>' : '');
+      document.getElementById("fieldSummaryFull").innerHTML = escapeHtml(summaryText) + '<button class="text-emerald-600 font-semibold text-[9px] block mt-0.5 hover:underline" onclick="toggleExpandSummary()">&uarr; Collapse</button>';
+
+      // 6. Impact Direction
+      const impactEl = document.getElementById("fieldImpact");
+      const tagEl = document.getElementById("fieldImpactTag");
+      const impact = (item.ImpactDirection || "").toLowerCase();
+      impactEl.innerText = item.ImpactDirection || "--";
+
+      if (impact.includes("neutralized")) {
+        impactEl.className = "text-xs font-bold text-yellow-700";
+        tagEl.className = "text-[8px] px-1 py-0.2 rounded font-bold uppercase tracking-wider bg-yellow-100 text-yellow-800 border border-yellow-300";
+        tagEl.innerText = "Adapted";
+      } else if (impact === "neutral") {
+        impactEl.className = "text-xs font-bold text-orange-700";
+        tagEl.className = "text-[8px] px-1 py-0.2 rounded font-bold uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-300";
+        tagEl.innerText = "Static";
+      } else if (impact.includes("beneficial")) {
+        impactEl.className = "text-xs font-bold text-emerald-700";
+        tagEl.className = "text-[8px] px-1 py-0.2 rounded font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300";
+        tagEl.innerText = "Positive";
+      } else {
+        impactEl.className = "text-xs font-bold text-rose-700";
+        tagEl.className = "text-[8px] px-1 py-0.2 rounded font-bold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300";
+        tagEl.innerText = "Detrimental";
+      }
+
+      // 7. Source Type & 8. Evidence Type
+      document.getElementById("fieldSourceType").innerText = item.SourceType || "Scholarly Journal Article";
+      document.getElementById("fieldEvidenceType").innerText = item.EvidenceType || "empirical";
+
+      // Restore Evaluations & Field Notes
+      if (review.evaluations) {
+        FIELD_KEYS.forEach(f => {
+          currentEvaluations[f] = review.evaluations[f] || null;
+          currentFieldNotes[f] = (review.fieldNotes && review.fieldNotes[f]) || "";
+          if (f === "URL") {
+            const urlInput = document.getElementById("urlReplacementInput");
+            if (urlInput) urlInput.value = review.customUrl || currentFieldNotes['URL'] || "";
+          } else {
+            const noteInput = document.getElementById("xNoteInput_" + f);
+            if (noteInput) noteInput.value = currentFieldNotes[f];
+          }
+          updateFieldEvalUI(f);
+        });
+      } else if (review.status === "confirmed") {
+        FIELD_KEYS.forEach(f => {
+          currentEvaluations[f] = "check";
+          currentFieldNotes[f] = "";
+          if (f !== "URL") {
+            const noteInput = document.getElementById("xNoteInput_" + f);
+            if (noteInput) noteInput.value = "";
+          }
+          updateFieldEvalUI(f);
+        });
+      } else if (review.status === "revision") {
+        const incSet = new Set(review.incorrectFields || []);
+        FIELD_KEYS.forEach(f => {
+          const isInc = incSet.has(f);
+          currentEvaluations[f] = isInc ? "x" : "check";
+          currentFieldNotes[f] = isInc ? (review.notes || "") : "";
+          if (f === "URL") {
+            const urlInput = document.getElementById("urlReplacementInput");
+            if (urlInput) urlInput.value = review.customUrl || "";
+          } else {
+            const noteInput = document.getElementById("xNoteInput_" + f);
+            if (noteInput) noteInput.value = currentFieldNotes[f];
+          }
+          updateFieldEvalUI(f);
+        });
+      } else {
+        FIELD_KEYS.forEach(f => {
+          currentEvaluations[f] = null;
+          currentFieldNotes[f] = "";
+          if (f === "URL") {
+            const urlInput = document.getElementById("urlReplacementInput");
+            if (urlInput) urlInput.value = review.customUrl || "";
+          } else {
+            const noteInput = document.getElementById("xNoteInput_" + f);
+            if (noteInput) noteInput.value = "";
+          }
+          updateFieldEvalUI(f);
+        });
+      }
+
+      // General notes
+      const genInput = document.getElementById("generalNotesInput");
+      if (genInput) {
+        genInput.value = review.generalNotes || (review.status === "confirmed" && review.notes !== "Verified" && review.notes !== "All 8 fields verified" ? review.notes : "");
+      }
+
+      // Evaluate Next Entry button
+      checkValidationCompletion();
+
+      // Automatically sync 2nd window quietly in background if active
+      if (isWindowSyncActive) {
+        updateSyncButtonStatus(true);
+        const targetUrl = getTargetPaperUrlWithFragment(item);
+        if (targetUrl && targetUrl !== "about:blank") {
+          syncTo2ndWindowQuietly(targetUrl);
+        }
+      }
+    }
+
+    function updateSyncButtonStatus(active) {
+      const btn = document.getElementById("btnToggleSyncWindow");
+      const label = document.getElementById("syncBtnLabel");
+      if (!btn || !label) return;
+
+      if (active) {
+        btn.className = "bg-emerald-600 text-white hover:bg-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold shadow-xs transition flex items-center gap-1 border border-emerald-400";
+        label.innerText = "2nd Window (Synced ✓)";
+        btn.title = "2nd window is synced: updates quietly with each paper";
+      } else {
+        btn.className = "bg-blue-600 hover:bg-blue-500 text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-xs transition flex items-center gap-1";
+        label.innerText = "Open in 2nd window";
+        btn.title = "Open paper in a 2nd window that automatically syncs as you navigate";
+      }
+    }
+
+    function openOrFocus2ndWindow(url) {
+      isWindowSyncActive = true;
+      updateSyncButtonStatus(true);
+
+      if (checkExtensionInstalled()) {
+        window.dispatchEvent(new CustomEvent("WORKBENCH_NAVIGATE_PAPER", {
+          detail: { url: url, bringToFront: true }
+        }));
+      } else {
+        openStandardCompanionWindow(url);
+      }
+    }
+
+    function openStandardCompanionWindow(url) {
+      try {
+        const availW = window.screen.availWidth || window.innerWidth || 1920;
+        const availH = window.screen.availHeight || window.innerHeight || 1080;
+        const screenLeft = window.screen.availLeft !== undefined ? window.screen.availLeft : (window.screenLeft || 0);
+        const screenTop = window.screen.availTop !== undefined ? window.screen.availTop : (window.screenTop || 0);
+        
+        const leftW = Math.max(460, Math.min(600, Math.round(availW * 0.34)));
+        const rightW = availW - leftW;
+        const rightLeft = screenLeft + leftW;
+
+        try {
+          window.resizeTo(leftW, availH);
+          window.moveTo(screenLeft, screenTop);
+        } catch(e) {}
+
+        if (!syncedWindow || syncedWindow.closed) {
+          syncedWindow = window.open(url, "WorkbenchCompanionWindow", `width=${rightW},height=${availH},left=${rightLeft},top=${screenTop},menubar=yes,toolbar=yes,location=yes,status=yes,scrollbars=yes,resizable=yes`);
+        } else {
+          syncedWindow.location.replace(url);
+          syncedWindow.focus();
+        }
+      } catch(e) {
+        window.open(url, '_blank');
+      }
+    }
+
+    function syncTo2ndWindowQuietly(url) {
+      if (checkExtensionInstalled()) {
+        window.dispatchEvent(new CustomEvent("WORKBENCH_NAVIGATE_PAPER", {
+          detail: { url: url, bringToFront: false }
+        }));
+      } else if (syncedWindow) {
+        if (syncedWindow.closed) {
+          isWindowSyncActive = false;
+          syncedWindow = null;
+          updateSyncButtonStatus(false);
+        } else {
+          try {
+            syncedWindow.location.replace(url);
+          } catch(e) {}
+        }
+      }
+    }
+
+    function resolveToAbsoluteUrl(url) {
+      if (!url) return "";
+      let clean = url.trim();
+      if (clean.startsWith("10.") || clean.startsWith("doi.org/")) {
+        return "https://doi.org/" + clean.replace(/^doi\.org\//, "");
+      }
+      if (!/^https?:\/\//i.test(clean)) {
+        return "https://" + clean;
+      }
+      return clean;
+    }
+
+    function getTargetPaperUrlWithFragment(item) {
+      const rawLink = item.Link || "";
+      let baseTarget = "";
+
+      if (rawLink.startsWith("http") && !rawLink.includes("vertexaisearch.cloud.google.com")) {
+        baseTarget = resolveToAbsoluteUrl(rawLink);
+      } else {
+        const query = encodeURIComponent(`"${item.Title || ''}" ${item.Species || ''}`);
+        return `https://www.google.com/search?q=${query}`;
+      }
+
+      return baseTarget;
+    }
+
+    function openInNewWindow() {
+      const item = allEntries[currentIndex];
+      const targetUrl = getTargetPaperUrlWithFragment(item);
+      if (!targetUrl || targetUrl === "about:blank") {
+        alert("No valid URL reported for this citation.");
+        return;
+      }
+      openOrFocus2ndWindow(targetUrl);
+      showToast("⧉ Opened in 2nd window (Synced to Next/Prev)!");
+    }
+
+    function openPaperInNewTab() {
+      const item = allEntries[currentIndex];
+      const targetUrl = getTargetPaperUrlWithFragment(item);
+      if (targetUrl && targetUrl !== "about:blank") {
+        window.open(targetUrl, '_blank');
+      } else {
+        alert("No valid URL reported for this citation.");
+      }
+    }
+
+    function copyQuoteToClipboard() {
+      const item = allEntries[currentIndex];
+      let quote = item.Quote || "";
+      quote = quote.replace(/^["“]+|["”]+$/g, '').trim();
+      navigator.clipboard.writeText(quote).then(() => {
+        showToast("📋 Verbatim quote copied to clipboard!");
+      });
+    }
+
+    function copySpeciesToClipboard() {
+      const item = allEntries[currentIndex];
+      const sp = item.Species || "";
+      navigator.clipboard.writeText(sp).then(() => {
+        showToast(`📋 Copied species "${sp}" to clipboard!`);
+      });
+    }
+
+    function triggerFaultyLinkGoogleSearch() {
+      const item = allEntries[currentIndex];
+      const query = encodeURIComponent(`"${item.Title || ''}" ${item.Species || ''}`);
+      const searchUrl = `https://www.google.com/search?q=${query}`;
+
+      if (isWindowSyncActive) {
+        // If 2nd window is synced, search Google in that synced 2nd window!
+        openOrFocus2ndWindow(searchUrl);
+        showToast("🔍 Searching Google in synced 2nd window!");
+      } else {
+        // Fallback: open in new tab
+        window.open(searchUrl, '_blank');
+      }
+    }
+
+    function saveOverriddenUrl() {
+      const input = document.getElementById("urlReplacementInput");
+      const newUrl = input ? input.value.trim() : "";
+      if (!newUrl) return alert("Please enter or paste a valid replacement URL.");
+
+      const item = allEntries[currentIndex];
+      item.Link = newUrl;
+      currentFieldNotes['URL'] = newUrl;
+
+      // Find all sibling rows that belong to this exact paper title and apply customUrl to all of them!
+      const normTitle = (item.Title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const siblingRows = normTitle ? paperGroupMap.get(normTitle) : [item.excelRow];
+
+      (siblingRows || [item.excelRow]).forEach(rowId => {
+        if (!reviewStore[rowId]) {
+          reviewStore[rowId] = { status: "unverified", customUrl: newUrl };
+        } else {
+          reviewStore[rowId].customUrl = newUrl;
+        }
+        const siblingEntry = allEntries.find(e => e.excelRow === rowId);
+        if (siblingEntry) {
+          siblingEntry.Link = newUrl;
+        }
+      });
+
+      const linkEl = document.getElementById("fieldUrlLink");
+      linkEl.href = newUrl;
+      linkEl.innerText = newUrl;
+      linkEl.title = newUrl;
+
+      saveStore();
+      const siblingMsg = siblingRows && siblingRows.length > 1 ? ` (applied to all ${siblingRows.length} claims for this paper)` : '';
+      showToast(`✓ Replacement URL saved${siblingMsg}!`);
+
+      if (isWindowSyncActive) {
+        syncTo2ndWindowQuietly(newUrl);
+      }
+
+      checkValidationCompletion();
+    }
+
+    function toggleExpand(field) {
+      const shortEl = document.getElementById("field" + field + "Short");
+      const fullEl = document.getElementById("field" + field + "Full");
+      if (fullEl.classList.contains("hidden")) {
+        fullEl.classList.remove("hidden");
+        shortEl.classList.add("hidden");
+      } else {
+        fullEl.classList.add("hidden");
+        shortEl.classList.remove("hidden");
+      }
+    }
+
+    function toggleExpandSummary() {
+      toggleExpand("Summary");
+    }
+
+    function toggleExpandQuote() {
+      toggleExpand("Quote");
+    }
+
+    function saveStore() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(reviewStore));
+      } catch(e) {
+        console.warn("Storage full", e);
+      }
+      updateLeaderboard();
+    }
+
+    function advanceEntry() {
+      currentIndex = (currentIndex + 1) % allEntries.length;
+      renderCurrentEntry();
+      filterSpreadsheet();
+    }
+
+    function prevEntry() {
+      currentIndex = (currentIndex - 1 + allEntries.length) % allEntries.length;
+      renderCurrentEntry();
+    }
+
+    function nextEntry() {
+      advanceEntry();
+    }
+
+    function jumpToRow(r) {
+      const rowNum = parseInt(r, 10);
+      const idx = allEntries.findIndex(e => e.excelRow === rowNum);
+      if (idx !== -1) {
+        currentIndex = idx;
+        renderCurrentEntry();
+        switchTab('workbench');
+      } else {
+        alert("Row number not found in dataset: " + r);
+      }
+    }
+
+    function switchTab(tab) {
+      ['workbench', 'spreadsheet', 'leaderboard'].forEach(t => {
+        const view = document.getElementById("view-" + t);
+        const btn = document.getElementById("tab-" + t);
+        if (t === tab) {
+          view.classList.remove("hidden");
+          btn.className = "px-2.5 py-0.5 rounded-md bg-emerald-600 text-white font-semibold shadow-xs transition";
+        } else {
+          view.classList.add("hidden");
+          btn.className = "px-2.5 py-0.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition";
+        }
+      });
+      if (tab === 'spreadsheet') filterSpreadsheet();
+      if (tab === 'leaderboard') updateLeaderboard();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function filterSpreadsheet() {
+      const tbody = document.getElementById("spreadsheetBody");
+      tbody.innerHTML = "";
+
+      const q = (document.getElementById("tableSearchInput").value || "").toLowerCase().trim();
+      const statusFilter = document.getElementById("tableStatusFilter").value;
+      const hazardFilter = document.getElementById("tableHazardFilter").value;
+
+      let count = 0;
+      allEntries.forEach((item, idx) => {
+        const review = getEntryReviewStatus(item.excelRow);
+
+        if (statusFilter === "verified" && review.status !== "confirmed") return;
+        if (statusFilter === "revision" && review.status !== "revision") return;
+        if (statusFilter === "unverified" && (review.status === "confirmed" || review.status === "revision")) return;
+        if (statusFilter === "user" && review.reviewer !== currentUser) return;
+        if (hazardFilter !== "all" && item.Hazard !== hazardFilter) return;
+
+        if (q) {
+          const hay = `${item.excelRow} ${item.Species} ${item.Hazard} ${item.Title} ${item.ImpactDirection} ${review.notes}`.toLowerCase();
+          if (!hay.includes(q)) return;
+        }
+
+        count++;
+        if (count > 250) return;
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50 cursor-pointer transition";
+        tr.onclick = () => {
+          currentIndex = idx;
+          switchTab('workbench');
+          renderCurrentEntry();
+        };
+
+        let badge = `<span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-1 py-0.2 rounded border border-amber-300">Unverified</span>`;
+        if (review.status === 'confirmed') badge = `<span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1 py-0.2 rounded border border-emerald-300">✓ Verified (${review.reviewer || 'Kira'})</span>`;
+        if (review.status === 'revision') badge = `<span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-1 py-0.2 rounded border border-rose-300">✗ Revision (${review.reviewer || 'Kira'})</span>`;
+
+        const commentText = review.notes || '';
+
+        tr.innerHTML = `
+          <td class="py-1.5 px-2 font-mono font-bold text-slate-800">${item.excelRow}</td>
+          <td class="py-1.5 px-2">${badge}</td>
+          <td class="py-1.5 px-2 font-semibold text-amber-800">${item.Hazard || ''}</td>
+          <td class="py-1.5 px-2 italic text-emerald-700">${item.Species || ''}</td>
+          <td class="py-1.5 px-2 font-semibold text-slate-800">${item.ImpactDirection || ''}</td>
+          <td class="py-1.5 px-2 max-w-xs truncate text-slate-900 font-medium" title="${escapeHtml(item.Title || '')}">${escapeHtml(item.Title || '')}</td>
+          <td class="py-1.5 px-2 max-w-xs truncate text-blue-600" title="${escapeHtml(item.Link || '')}">${escapeHtml(item.Link || '')}</td>
+          <td class="py-1.5 px-2 max-w-xs truncate text-[10px] text-slate-500" title="${escapeHtml(commentText)}">${escapeHtml(commentText) || '<span class="text-slate-400 italic">None</span>'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("queueTotalCount").innerText = allEntries.length;
+    }
+
+    function initHazardFilter() {
+      const hazards = Array.from(new Set(allEntries.map(e => e.Hazard).filter(Boolean))).sort();
+      const sel = document.getElementById("tableHazardFilter");
+      hazards.forEach(h => {
+        const opt = document.createElement("option");
+        opt.value = h;
+        opt.innerText = h;
+        sel.appendChild(opt);
+      });
+    }
+
+    function updateLeaderboard() {
+      const counts = {
+        Kira: { verified: 0, revision: 0, lastActive: "Active now" },
+        Alex: { verified: 0, revision: 0, lastActive: "Idle" },
+        Taylor: { verified: 0, revision: 0, lastActive: "Idle" },
+        Jordan: { verified: 0, revision: 0, lastActive: "Idle" }
+      };
+
+      let totalVerifiedAll = 0;
+
+      allEntries.forEach(item => {
+        const r = getEntryReviewStatus(item.excelRow);
+        if (r.status === 'confirmed') {
+          const user = r.reviewer || 'Kira';
+          if (!counts[user]) counts[user] = { verified: 0, revision: 0, lastActive: "Idle" };
+          counts[user].verified++;
+          totalVerifiedAll++;
+          if (r.timestamp && r.timestamp !== "Pre-verified") {
+            counts[user].lastActive = formatTimestamp(r.timestamp);
+          }
+        } else if (r.status === 'revision') {
+          const user = r.reviewer || 'Kira';
+          if (!counts[user]) counts[user] = { verified: 0, revision: 0, lastActive: "Idle" };
+          counts[user].revision++;
+          if (r.timestamp) {
+            counts[user].lastActive = formatTimestamp(r.timestamp);
+          }
+        }
+      });
+
+      document.getElementById("leaderboardTotalVerified").innerText = 
+        `${totalVerifiedAll} / ${allEntries.length} (${((totalVerifiedAll / allEntries.length) * 100).toFixed(1)}%)`;
+
+      const container = document.getElementById("leaderboardBarContainer");
+      container.innerHTML = "";
+      const colors = {
+        Kira: "bg-emerald-600",
+        Alex: "bg-sky-600",
+        Taylor: "bg-indigo-600",
+        Jordan: "bg-purple-600"
+      };
+
+      Object.entries(counts).forEach(([user, data]) => {
+        const totalChecked = data.verified + data.revision;
+        const pct = allEntries.length > 0 ? ((totalChecked / allEntries.length) * 100).toFixed(1) : 0;
+        const isCurrent = (user === currentUser);
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <div class="flex justify-between text-xs font-semibold mb-1">
+            <span class="flex items-center gap-1.5 ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-800'}">
+              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '(Active Reviewer)' : ''}
+            </span>
+            <span class="font-mono ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-600'}">${totalChecked} entries checked</span>
+          </div>
+          <div class="w-full bg-slate-200 h-4 rounded-md overflow-hidden border border-slate-300 p-0.5">
+            <div class="${colors[user] || 'bg-slate-600'} h-full rounded flex items-center justify-end pr-2 text-[9px] text-white font-bold transition-all duration-700" style="width: ${Math.max(2, pct)}%;">
+              ${pct}%
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      const tb = document.getElementById("leaderboardTableBody");
+      tb.innerHTML = "";
+      Object.entries(counts).forEach(([user, data]) => {
+        const totalChecked = data.verified + data.revision;
+        const agreement = totalChecked > 0 ? (((data.verified) / totalChecked) * 100).toFixed(1) + "%" : "100.0%";
+        const isCurrent = (user === currentUser);
+        const statusLabel = isCurrent ? "Active now" : (data.lastActive || "Idle");
+
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="py-1.5 px-2.5 font-semibold ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-800'}">${user} ${isCurrent ? '(You)' : ''}</td>
+          <td class="py-1.5 px-2.5 font-mono font-bold text-slate-900">${totalChecked}</td>
+          <td class="py-1.5 px-2.5 font-mono text-emerald-700 font-semibold">${data.verified}</td>
+          <td class="py-1.5 px-2.5 font-mono text-rose-700 font-semibold">${data.revision}</td>
+          <td class="py-1.5 px-2.5 font-mono text-slate-700">${agreement}</td>
+          <td class="py-1.5 px-2.5">
+            <span class="${isCurrent ? 'bg-emerald-100 text-emerald-800 font-bold' : 'bg-slate-100 text-slate-600'} text-[9px] px-1.5 py-0.2 rounded font-bold">
+              ${statusLabel}
+            </span>
+          </td>
+        `;
+        tb.appendChild(tr);
+      });
+    }
+
+    function formatTimestamp(iso) {
+      if (!iso) return "Idle";
+      try {
+        const d = new Date(iso);
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } catch(e) {
+        return "Recent";
+      }
+    }
+
+    function exportValidatedCsv() {
+      let csv = "ExcelRow,Hazard,Species,Title,ImpactDirection,EvidenceType,Link,ReviewStatus,Reviewer,Notes\n";
+      allEntries.forEach(item => {
+        const rev = getEntryReviewStatus(item.excelRow);
+        const row = [
+          item.excelRow,
+          `"${(item.Hazard || '').replace(/"/g, '""')}"`,
+          `"${(item.Species || '').replace(/"/g, '""')}"`,
+          `"${(item.Title || '').replace(/"/g, '""')}"`,
+          `"${(item.ImpactDirection || '').replace(/"/g, '""')}"`,
+          `"${(item.EvidenceType || '').replace(/"/g, '""')}"`,
+          `"${(item.Link || '').replace(/"/g, '""')}"`,
+          `"${rev.status}"`,
+          `"${rev.reviewer || ''}"`,
+          `"${(rev.notes || '').replace(/"/g, '""')}"`
+        ];
+        csv += row.join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `climatehazard_food_validated_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      showToast("📥 Exported validated CSV dataset!");
+    }
+
+    // Initialize App
+    initHazardFilter();
+    updateSpreadsheetUserFilterLabel();
+    updateExportButtonVisibility();
+    renderCurrentEntry();
+    updateLeaderboard();
+  </script>
+</body>
+</html>
