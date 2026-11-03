@@ -47,7 +47,7 @@
         Validation Workbench
       </button>
       <button onclick="switchTab('spreadsheet')" id="tab-spreadsheet" class="px-2.5 py-0.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-        Spreadsheet Queue (<span id="queueTotalCount">542</span>)
+        Spreadsheet Queue (<span id="queueTotalCount">30</span>)
       </button>
       <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="px-2.5 py-0.5 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
         Team Leaderboard
@@ -91,7 +91,7 @@
         <section class="bg-white border border-slate-200 rounded-lg p-2 shadow-xs">
           <div class="flex items-center justify-between gap-1 mb-1 flex-wrap">
             <span class="inline-flex items-center text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded">
-              Entry #<span id="currentEntryIndex">1</span> of <span id="totalEntriesCount">542</span> (Row <span id="excelRowId">2</span>)
+              Entry #<span id="currentEntryIndex">1</span> of <span id="totalEntriesCount">30</span> (Row <span id="excelRowId">1</span>)
             </span>
             <div class="flex items-center gap-1 shrink-0">
               <span id="paperMultiClaimBadge" class="hidden text-[9px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded"></span>
@@ -109,7 +109,7 @@
           <div class="flex items-center justify-between gap-1.5 mt-1.5 pt-1.5 border-t border-slate-100">
             <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-1.5 py-0.2 rounded text-[11px]">
               <span class="text-[9px] text-slate-500 uppercase font-bold">Row:</span>
-              <input type="number" id="jumpRowInput" min="2" max="543" value="2" 
+              <input type="number" id="jumpRowInput" min="1" max="30" value="1" 
                      onkeydown="if(event.key==='Enter') jumpToRow(this.value)"
                      class="w-10 bg-white border border-slate-300 rounded px-1 py-0.2 text-center font-bold text-slate-800 outline-none text-[11px] focus:border-emerald-500">
               <button onclick="jumpToRow(document.getElementById('jumpRowInput').value)" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-600 text-white hover:bg-emerald-500">Go</button>
@@ -432,13 +432,13 @@
   </main>
 
   <!-- ============================================================== -->
-  <!-- TAB 2: LIVE SPREADSHEET QUEUE (ALL 542 ENTRIES WITH COMMENTS)  -->
+  <!-- TAB 2: LIVE SPREADSHEET QUEUE (ALL 30 PILOT ENTRIES WITH COMMENTS)  -->
   <!-- ============================================================== -->
   <main id="view-spreadsheet" class="max-w-[1700px] mx-auto hidden">
     <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-2.5">
         <div>
-          <h2 class="text-xs md:text-sm font-bold text-slate-900">Master Dataset Spreadsheet Queue (542 Real V13 Citations)</h2>
+          <h2 class="text-xs md:text-sm font-bold text-slate-900">Pilot Sample Spreadsheet Queue (30 v14 Entries)</h2>
           <p class="text-[10px] text-slate-500">Click any row below to immediately load that citation into the Workbench for review.</p>
         </div>
 
@@ -449,7 +449,7 @@
                  class="bg-slate-50 border border-slate-300 rounded-lg px-2 py-0.5 text-xs text-slate-800 outline-none focus:border-emerald-500 w-48">
           
           <select id="tableStatusFilter" onchange="filterSpreadsheet()" class="bg-slate-50 border border-slate-300 text-slate-800 rounded-lg px-2 py-0.5 text-xs font-semibold">
-            <option value="all">All Citations (542)</option>
+            <option value="all">All Citations (30)</option>
             <option value="verified">Verified</option>
             <option value="revision">Needs Revision</option>
             <option value="unverified">Unverified (Pending Review)</option>
@@ -496,7 +496,7 @@
         </div>
         <div class="text-right">
           <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Total Dataset Verified</span>
-          <div class="text-base md:text-lg font-bold text-emerald-600" id="leaderboardTotalVerified">0 / 542 (0%)</div>
+          <div class="text-base md:text-lg font-bold text-emerald-600" id="leaderboardTotalVerified">0 / 30 (0%)</div>
         </div>
       </div>
 
