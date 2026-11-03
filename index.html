@@ -2258,6 +2258,24 @@
       });
     }
 
+    function formatTimestamp(isoStr) {
+      if (!isoStr || isoStr === "Idle" || isoStr === "Pre-verified") return "Idle";
+      try {
+        const d = new Date(isoStr);
+        if (isNaN(d.getTime())) return isoStr;
+        const now = new Date();
+        const diffMs = now - d;
+        const diffMin = Math.floor(diffMs / 60000);
+        if (diffMin < 1) return "Just now";
+        if (diffMin < 60) return `${diffMin}m ago`;
+        const diffHrs = Math.floor(diffMin / 60);
+        if (diffHrs < 24) return `${diffHrs}h ago`;
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      } catch (e) {
+        return "Active";
+      }
+    }
+
     function updateLeaderboard() {
       const counts = {};
       TEAM_MEMBERS.forEach(name => {
