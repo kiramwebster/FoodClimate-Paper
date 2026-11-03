@@ -68,7 +68,7 @@
       </a>
 
       <!-- Export CSV (Lead Reviewer Only) -->
-      <button id="btnExportCsv" onclick="exportValidatedCsv()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-lg shadow-xs transition flex items-center gap-1 text-[11px]" title="Export current dataset as CSV">
+      <button id="btnExportCsv" onclick="exportValidatedCsv()" style="display: none;" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-lg shadow-xs transition flex items-center gap-1 text-[11px]" title="Export current dataset as CSV">
         <span>📥</span> Export CSV
       </button>
     </div>
@@ -534,7 +534,7 @@
             <th class="py-1.5 px-2.5">Reviewer</th>
             <th class="py-1.5 px-2.5">Entries Checked</th>
             <th class="py-1.5 px-2.5">Verified Entries</th>
-            <th class="py-1.5 px-2.5">Flagged for Revision</th>
+            <th class="py-1.5 px-2.5">Flagged Entries</th>
             <th class="py-1.5 px-2.5">Agreement Rate</th>
             <th class="py-1.5 px-2.5">Status</th>
           </tr>
@@ -1383,14 +1383,13 @@
       TEAM_MEMBERS.forEach(name => {
         const btn = document.createElement("button");
         const isCurrent = (name === currentUser);
-        const isLead = (name === "Kira");
-        btn.type = "button";
+                btn.type = "button";
         btn.className = `p-2 rounded-lg border font-semibold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
           isCurrent 
             ? 'bg-emerald-600 text-white border-emerald-600 ring-2 ring-emerald-300' 
             : 'bg-slate-50 hover:bg-emerald-50 hover:text-emerald-800 border-slate-200 text-slate-700'
         }`;
-        btn.innerHTML = `<span>${isLead ? '👑' : '👤'}</span> <span>${name}</span>`;
+        btn.innerHTML = `<span>👤</span> <span>${name}</span>`;
         btn.onclick = () => setReviewer(name);
         grid.appendChild(btn);
       });
@@ -1423,7 +1422,7 @@
       const opt = document.getElementById("optUserEntries");
       if (opt) opt.innerText = `${currentUser || 'My'}'s Entries`;
       const btn = document.getElementById("btnExportCsv");
-      if (btn) btn.style.display = "inline-flex";
+      if (btn) btn.style.display = (currentUser === "Kira") ? "inline-flex" : "none";
     }
 
     function getEntryReviewStatus(row) {
@@ -2192,7 +2191,7 @@
         div.innerHTML = `
           <div class="flex justify-between text-xs font-semibold mb-1">
             <span class="flex items-center gap-1.5 ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-800'}">
-              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '<span class="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded border border-emerald-300 font-bold">(You)</span>' : ''}
+              <span>👤</span> ${user} ${isCurrent ? '<span class="text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded border border-emerald-300 font-bold">(You)</span>' : ''}
             </span>
             <span class="font-mono ${isCurrent ? 'text-emerald-700 font-bold' : 'text-slate-600'}">${totalChecked} / ${allEntries.length} checked</span>
           </div>
@@ -2217,7 +2216,7 @@
           tr.className = isCurrent ? "bg-emerald-50/60 font-medium" : "hover:bg-slate-50";
           tr.innerHTML = `
             <td class="py-1.5 px-2.5 font-bold text-slate-800 flex items-center gap-1">
-              <span>${user === 'Kira' ? '👑' : '👤'}</span> ${user} ${isCurrent ? '<span class="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">(You)</span>' : ''}
+              <span>👤</span> ${user} ${isCurrent ? '<span class="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">(You)</span>' : ''}
             </td>
             <td class="py-1.5 px-2.5 font-mono font-bold text-slate-700">${totalChecked}</td>
             <td class="py-1.5 px-2.5 font-mono font-bold text-emerald-700">${data.verified}</td>
