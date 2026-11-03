@@ -24,18 +24,19 @@ An interactive scientific validation workbench designed for evaluating LLM-extra
    
 ---
 
-## 🧩 Optional Chrome Extension (Workbench Sync Assistant)
+## Optional (but HIGHLY Recomended) Chrome Extension (Workbench Sync Assistant)
 
-For complete hands-free window management across all academic publishers (Wiley, Springer, ScienceDirect, etc.), reviewers can install the companion Chrome Extension:
-1. Download [`WorkbenchSyncExtension.zip`](WorkbenchSyncExtension.zip) from this repository.
+For complete hands-free window management syncing across all academic publishers (Wiley, Springer, ScienceDirect, etc.), reviewers can install the companion Chrome Extension:
+1. Download [`WorkbenchSyncExtension.zip`](WorkbenchSyncExtension.zip) from this repository (does not need to be anywehre specific on your computer).
 2. Unzip the folder on your computer.
 3. In Google Chrome, go to `chrome://extensions`.
 4. Turn on **Developer mode** in the top right.
 5. Click **Load unpacked** and select the unzipped extension folder.
+6. Once all these steps have been completed, the website can be utilized fully in Chrome and Edge. 
 
 ---
 
-## 📊 Repository Structure
+## Repository Structure
 
 - `index.html`: Main Validation Workbench application pre-loaded with the v14 team test sample.
 - `v14SAMPLE/`: Pilot sample files in Excel (`.xlsx`), CSV (`.csv`), and JSON (`.json`) formats.
